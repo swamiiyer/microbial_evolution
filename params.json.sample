@@ -1,0 +1,20 @@
+{
+    "time_step" : 1, 
+    "iterations" : 1000, 
+    "volume" : 1, 
+    "P_tot" : 500, 
+    "V_init" : 10000000, 
+    "H_init" : 1000000, 
+    "mass_max" : 1.6e-8, 
+    "alpha" : 6.4e-9,
+    "mu_max0" : 0.16,
+    "other_loss_rate" : 1.4e-2, 
+    "V_mutation_rate" : 0.01, 
+    "V_mutation_std" : 0.01, 
+    "H_mutation_rate" : 0.01, 
+    "H_mutation_std" : 1.5e-11,
+    "burst_size" : 50, 
+    "beta0" : 1.5e-10, 
+    "memory" : 0.9, 
+    "decay_rate" : 1.4e-2
+}
