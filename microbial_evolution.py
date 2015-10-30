@@ -63,7 +63,7 @@ def run(params):
             # Growth.
             mu_j = (params["alpha"] * DIP) / (1 + params["alpha"] * DIP / j.mu_max)            
             j.mass = j.mass + j.mass * mu_j * params["time_step"]
-            print mu_j, j.mass, params["mass_max"]
+            print mu_j
             if j.mass >= params["mass_max"]:
                 # Create daughter cells with possible mutations
                 r = random.random()

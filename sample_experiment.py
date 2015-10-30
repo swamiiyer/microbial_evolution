@@ -18,14 +18,14 @@ def main():
         "V_init" : 200, 
         
         # Initial host population size.
-        "H_init" : 10, 
+        "H_init" : 100, 
 
         # Maximum mass of a host cell as a multiple of its nmol-P value.
         "mass_max" : 1, 
         "nmol_p_max" : 1.6e-8, 
     
-        # Nutrient affinity in L per h per individual.
-        "alpha" : 6.4e-9,  
+        # Nutrient affinity in L per h per nmol-P.
+        "alpha" : 0.4,  
 
         # Maximum growth per h.
         "mu_max0" : 0.16, 
