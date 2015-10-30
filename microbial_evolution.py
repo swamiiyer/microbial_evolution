@@ -1,4 +1,4 @@
-import numpy, random, sys
+import random, sys
 
 class Virus(object):
     """
@@ -46,13 +46,24 @@ def run(params):
     DIP = P_tot - biomass_conc
 
     for t in range(params["iterations"]):
-        # Growth
         H_new = []
         for j in H_init:
-            mu_j = (params["alpha"] * DIP) / (1 + params["alpha"] * DIP / j.mu_max)            
-            j.mass += j.mass * mu_j * params["time_step"]
- 
+            # Loss due to metabolism
+            if params["other_loss_type"] == 1 or params["other_loss_type"] == 2:
+                mass_loss = j.mass * params["other_loss_rate"] * params["time_step"]
+                j.mass -= mass_loss
+                DIP += mass_loss
             
+            # Loss due to mortality
+            if params["other_loss_type"] == 0 or params["other_loss_type"] == 2:
+                if random.random() < params["other_loss_rate"] * params["time_step"]:
+                    DIP += j.mass * params["nmol_p_max"] / params["volume"]
+                    continue
+
+            # Growth.
+            mu_j = (params["alpha"] * DIP) / (1 + params["alpha"] * DIP / j.mu_max)            
+            j.mass = j.mass + j.mass * mu_j * params["time_step"]
+            print mu_j, j.mass, params["mass_max"]
             if j.mass >= params["mass_max"]:
                 # Create daughter cells with possible mutations
                 r = random.random()
@@ -60,55 +71,48 @@ def run(params):
                 mu_max = j.mu_max
                 if r < params["H_mutation_prob"]:
                     mu_max = max(0, random.gauss(j.mu_max, params["H_mutation_std"]))
-                    strain += 1 if mu_max - j.mu_max > params["H_mutation_std"] else -1
-                  
+                    if abs(mu_max - j.mu_max) > params["H_mutation_std"]:
+                        strain += 1 if mu_max - j.mu_max > 0 else -1
                 d1 = Host(strain, j.mass / 2, mu_max)
                 d2 = Host(strain, j.mass / 2, mu_max)
                 H_new.append(d1)
                 H_new.append(d2)
             else:
                 H_new.append(j)
-        
-            if random.random() > params["other_loss_rate"] * params["time_step"]:
-                H_new.append(j)
-            else:
-                DIP += j.mass * params["nmol_p_max"] / params["volume"]
+
+        V_new = []
+        for i in V_init:
+            # Loss.
+            if random.random() < params["decay_rate"] * params["time_step"]:
+                continue
+
+            # Infection.
+            infected = False
+            for j in H_init:
+                p = params["memory"] ** abs(i.strain - j.strain) * i.beta * params["time_step"] / params["volume"]
+                if random.random() < p: # Virus infects host and multiplies
+                    DIP += j.mass * params["nmol_p_max"] / params["volume"]
+                    for k in range(params["burst_size"]):
+                        strain = i.strain
+                        beta = i.beta
+                        if random.random() < params["V_mutation_prob"]:
+                            beta = max(0, random.gauss(i.beta, params["V_mutation_std"]))
+                            if abs(beta - i.beta) > params["V_mutation_std"]:
+                                strain += 1 if beta - i.beta > 0 else -1
+                        V_new.append(Virus(strain, beta))
+                    infected = True
+                    if j in H_new:
+                        H_new.remove(j)
+                    break
+            
+            # No infection.
+            if not infected:
+                V_new.append(i)
 
         H_init = H_new
-        
-        V_strains = {V.strain for V in V_init}
-        for i in V_strains:
-            H_strains = {H.strain for H in H_init if H.strain <= i}
-            V_i = [V for V in V_init if V.strain == i]
-            beta = numpy.average([V.beta for V in V_i])
-            for j in H_strains:
-                H_j = [H for H in H_init if H.strain == j]
-                infected = min(int(params["memory"] ** abs(i - j) * beta * len(V_i) * len(H_j) * params["time_step"] / params["volume"]), len(H_j))
-
-                print i, len(V_i), j, len(H_j)
-                for x in random.sample(H_j, infected):
-                    DIP += x.mass * params["nmol_p_max"] / params["volume"]
-                    H_init.remove(x)
-
-                for x in random.sample(V_i, infected):
-                    for y in range(params["burst_size"]):
-                        strain = i
-                        beta = x.beta
-                        r = random.random()
-                        if r < params["V_mutation_prob"]:
-                            beta = max(0, random.gauss(x.beta, params["V_mutation_std"]))
-                            strain += 1 if beta - x.beta > params["V_mutation_std"] else -1
-                        V_init.append(Virus(strain, beta))
-                    V_init.remove(x)
-        
-        V_new = []
-        for V in V_init:
-            if random.random() > params["decay_rate"] * params["time_step"]:
-                V_new.append(V)
         V_init = V_new
-        print len(V_init), len(H_init)
 
-
-    # # Biomass concentration of simulated host population in nmol-P per L.
-
-    # print biomass_conc, DIP, DIP + biomass_conc
+        V_strains = {v.strain for v in V_init}
+        H_strains = {h.strain for h in H_init}
+        
+        print t, len(V_init), len(H_init), len(V_strains), len(H_strains)

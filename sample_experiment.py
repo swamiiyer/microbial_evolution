@@ -12,13 +12,13 @@ def main():
         "volume" : 1e-6,
         
         # Total Phosphorous concentration in nmol-P per L
-        "P_tot" : 500,
+        "P_tot" : 5000,
         
         # Initial virus population size.
-        "V_init" : 2000, 
+        "V_init" : 200, 
         
         # Initial host population size.
-        "H_init" : 1000, 
+        "H_init" : 10, 
 
         # Maximum mass of a host cell as a multiple of its nmol-P value.
         "mass_max" : 1, 
@@ -31,6 +31,7 @@ def main():
         "mu_max0" : 0.16, 
 
         # Other losses per h.
+        "other_loss_type" : 0, # mortality (0), metabolic (1), or both (2).
         "other_loss_rate" : 1.4e-2, 
         
         # Virus mutation probability.
