@@ -5,7 +5,8 @@ class Virus(object):
     Represents a virus cell.
     """
 
-    def __init__(self, strain, beta):
+    def __init__(self, species, strain, beta):
+        self.species = species
         self.strain = strain
         self.beta = beta
 
@@ -17,10 +18,12 @@ class Host(object):
     Represents a host cell.
     """
 
-    def __init__(self, strain, mass, mu_max):
+    def __init__(self, species, strain, mass, mu_max, alpha):
+        self.species = species
         self.strain = strain
         self.mass = mass
         self.mu_max = mu_max
+        self.alpha = alpha
 
     def __str__(self):
         return "H(%d): mass = %e, mu_max = %e" %(self.strain, self.mass, \
@@ -31,50 +34,63 @@ def run(params):
     Entry point.
     """
     
-    V_tot, H_tot = 0, 0 # total number of viruses and hosts
-    nV, nH = 0, 0       # total number of virus and host strains
-
     P_tot = params["P_tot"]
-    V_init = [Virus(0, params["beta0"]) for i in range(params["V_init"])]
-    H_init = [Host(0, random.uniform(0.5 * params["mass_max"], 
-                                     params["mass_max"]), params["mu_max0"]) \
+    V_init = [Virus(0, 0, params["beta00"]) for i in range(params["V_init"])]
+    H_init = [Host(0, 0, random.uniform(0.5 * params["mass_max"], 
+                                        params["mass_max"]), params["mu_max00"], params["alpha00"]) \
               for i in range(params["H_init"])]
 
-    # Biomass of simulated host population in nmol-P.
-    biomass_sim = sum([host.mass for host in H_init]) * params["nmol_p_max"]
-    biomass_conc = biomass_sim / params["volume"]
-    DIP = P_tot - biomass_conc
+    # Biomass of simulated host population.
+    biomass_sim = sum([host.mass for host in H_init])
+    #biomass_conc = biomass_sim / params["volume"] (TBD)
+    DIP = P_tot - biomass_sim
 
     for t in range(params["iterations"]):
         H_new = []
         for j in H_init:
             # Loss due to metabolism
             if params["other_loss_type"] == 1 or params["other_loss_type"] == 2:
-                mass_loss = j.mass * params["other_loss_rate"] * params["time_step"]
+                mass_loss = j.mass * params["other_loss_rate"]
                 j.mass -= mass_loss
                 DIP += mass_loss
             
             # Loss due to mortality
             if params["other_loss_type"] == 0 or params["other_loss_type"] == 2:
-                if random.random() < params["other_loss_rate"] * params["time_step"]:
-                    DIP += j.mass * params["nmol_p_max"] / params["volume"]
+                if random.random() < params["other_loss_rate"]:
+                    DIP += j.mass
                     continue
 
             # Growth.
-            mu_j = (params["alpha"] * DIP) / (1 + params["alpha"] * DIP / j.mu_max)            
-            j.mass = j.mass + j.mass * mu_j * params["time_step"]
-            print mu_j
+            mu_j = (j.alpha * DIP) / (1 + j.alpha * DIP / j.mu_max)            
+            j.mass = j.mass + j.mass * mu_j
             if j.mass >= params["mass_max"]:
                 # Create daughter cells with possible mutations
                 r = random.random()
+                species = j.species
                 strain = j.strain
                 mu_max = j.mu_max
-                if r < params["H_mutation_prob"]:
-                    mu_max = max(0, random.gauss(j.mu_max, params["H_mutation_std"]))
-                    if abs(mu_max - j.mu_max) > params["H_mutation_std"]:
+                alpha = j.alpha
+
+                # species level
+                if r < params["H_mutation_prob"][0]:
+                    alpha = max(0, random.gauss(j.alpha, params["H_mutation_std"][0]))
+
+                    # mu_max has an inverse relationship with alpha
+                    mu_max = mu_max - mu_max * (alpha - j.alpha) / j.alpha
+
+                    if alpha - j.alpha > params["H_mutation_std"][0]:
+                        species -= 1
+                    else:
+                        species += 1
+
+                # strain level
+                if r < params["H_mutation_prob"][1]:
+                    mu_max = max(0, random.gauss(j.mu_max, params["H_mutation_std"][1]))
+                    if abs(mu_max - j.mu_max) > params["H_mutation_std"][1]:
                         strain += 1 if mu_max - j.mu_max > 0 else -1
-                d1 = Host(strain, j.mass / 2, mu_max)
-                d2 = Host(strain, j.mass / 2, mu_max)
+
+                d1 = Host(species, strain, j.mass / 2, mu_max, alpha)
+                d2 = Host(species, strain, j.mass / 2, mu_max, alpha)
                 H_new.append(d1)
                 H_new.append(d2)
             else:
@@ -83,23 +99,36 @@ def run(params):
         V_new = []
         for i in V_init:
             # Loss.
-            if random.random() < params["decay_rate"] * params["time_step"]:
+            if random.random() < params["decay_rate"]:
                 continue
 
             # Infection.
             infected = False
             for j in H_init:
-                p = params["memory"] ** abs(i.strain - j.strain) * i.beta * params["time_step"] / params["volume"]
+                if i.species != j.species:
+                    continue
+
+                p =  i.beta * params["memory"] ** abs(i.strain - j.strain)
                 if random.random() < p: # Virus infects host and multiplies
-                    DIP += j.mass * params["nmol_p_max"] / params["volume"]
+                    DIP += j.mass
                     for k in range(params["burst_size"]):
+                        species = i.species
                         strain = i.strain
                         beta = i.beta
-                        if random.random() < params["V_mutation_prob"]:
-                            beta = max(0, random.gauss(i.beta, params["V_mutation_std"]))
-                            if abs(beta - i.beta) > params["V_mutation_std"]:
+
+                        # Species level
+                        if random.random() < params["V_mutation_prob"][0]:
+                            beta = max(0, random.gauss(i.beta, params["V_mutation_std"][0]))
+                            if abs(beta - i.beta) > params["V_mutation_std"][0]:
+                                species += 1 if beta - i.beta > 0 else -1
+
+                        # Strain level
+                        if random.random() < params["V_mutation_prob"][1]:
+                            beta = max(0, random.gauss(i.beta, params["V_mutation_std"][1]))
+                            if abs(beta - i.beta) > params["V_mutation_std"][1]:
                                 strain += 1 if beta - i.beta > 0 else -1
-                        V_new.append(Virus(strain, beta))
+
+                        V_new.append(Virus(species, strain, beta))
                     infected = True
                     if j in H_new:
                         H_new.remove(j)
@@ -112,7 +141,6 @@ def run(params):
         H_init = H_new
         V_init = V_new
 
-        V_strains = {v.strain for v in V_init}
-        H_strains = {h.strain for h in H_init}
-        
-        print t, len(V_init), len(H_init), len(V_strains), len(H_strains)
+        V_strains = {(v.species, v.strain) for v in V_init}
+        H_strains = {(h.species, h.strain) for h in H_init}
+        print t, len(V_init), len(H_init), V_strains, H_strains
