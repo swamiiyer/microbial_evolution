@@ -1,12 +1,16 @@
 import microbial_evolution
+import time
 
 def main():
     params = {
+        # seed.
+        "seed" : int(time.time()), #1449245025,
+        
         # Time step in h.
         "time_step" : 1,
         
         # Total number of time steps.
-        "iterations" : 1000,
+        "iterations" : 200,
 
         # Volume in L.
         "volume" : 1e-6,
@@ -15,15 +19,15 @@ def main():
         "P_tot" : 5000,
         
         # Initial virus population size.
-        "V_init" : 2000, 
+        "V_init" : 1000, 
         
         # Initial host population size.
-        "H_init" : 100, 
+        "H_init" : 1000, 
 
         # Maximum mass of a host cell as a multiple of its nmol-P value.
         "mass_max" : 1, 
         "nmol_p_max" : 1.6e-8, 
-    
+
         # Nutrient affinity in L per h per nmol-P (*)
         "alpha00" : 0.4,  
 
@@ -41,7 +45,7 @@ def main():
         "V_mutation_std" : [1.5e-11, 1.5e-11], 
         
         # Host mutation (species, strain) probability.
-        "H_mutation_prob" : [0.001, 0.01], 
+        "H_mutation_prob" : [0.01, 0.1], 
 
         # Host mutation (species, strain) width.
         "H_mutation_std" : [0.01, 0.01], 
@@ -60,7 +64,7 @@ def main():
     }
 
     # Unit conversions.
-    params["P_tot"] =  params["P_tot"] / params["volume"] / params["nmol_p_max"]
+    params["P_tot"] =  params["P_tot"] * params["volume"] / params["nmol_p_max"]
     params["alpha00"] =  params["alpha00"] / params["volume"] * params["time_step"] * params["nmol_p_max"]
     params["mu_max00"] = params["mu_max00"] * params["time_step"]
     params["other_loss_rate"] = params["other_loss_rate"] * params["time_step"]
