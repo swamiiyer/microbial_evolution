@@ -33,6 +33,8 @@ def run(params):
     """
     Entry point.
     """
+
+    random.seed(params["seed"])
     
     P_tot = params["P_tot"]
     V_init = [Virus(0, 0, params["beta00"]) for i in range(params["V_init"])]
@@ -45,7 +47,17 @@ def run(params):
     #biomass_conc = biomass_sim / params["volume"] (TBD)
     DIP = P_tot - biomass_sim
 
+    print "seed = %d" %(params["seed"])
+
     for t in range(params["iterations"]):
+        V_strains = len({v.strain for v in V_init})
+        V_species = len({v.species for v in V_init})
+        H_strains = len({h.strain for h in H_init})
+        H_species = len({h.species for h in H_init})
+                
+        biomass_sim = sum([j.mass for j in H_init])
+        print "%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\t%d" %(DIP, biomass_sim, DIP + biomass_sim, len(V_init), len(H_init), V_strains, V_species, H_strains, H_species)
+
         H_new = []
         for j in H_init:
             # Loss due to metabolism
@@ -62,7 +74,9 @@ def run(params):
 
             # Growth.
             mu_j = (j.alpha * DIP) / (1 + j.alpha * DIP / j.mu_max)            
-            j.mass = j.mass + j.mass * mu_j
+            delta = j.mass * mu_j
+            j.mass = j.mass + delta
+            DIP -= delta
             if j.mass >= params["mass_max"]:
                 # Create daughter cells with possible mutations
                 r = random.random()
@@ -141,6 +155,7 @@ def run(params):
         H_init = H_new
         V_init = V_new
 
-        V_strains = {(v.species, v.strain) for v in V_init}
-        H_strains = {(h.species, h.strain) for h in H_init}
-        print t, len(V_init), len(H_init), V_strains, H_strains
+        
+        
+        
+        
