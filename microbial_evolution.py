@@ -1,4 +1,4 @@
-import random, sys
+import pickle, random, sys
 
 class Virus(object):
     """
@@ -6,12 +6,19 @@ class Virus(object):
     """
 
     def __init__(self, species, strain, beta):
+        """ 
+        Construct a virus given its species id, strain id, and adsorption
+        coefficient.
+        """
         self.species = species
         self.strain = strain
         self.beta = beta
 
     def __str__(self):
-        return "V(%d): beta = %e" %(self.strain, self.beta)
+        """
+        Return a string representation of this virus.
+        """
+        return "V(sp%d-st%d): beta = %e" %(self.species, self.strain, self.beta)
 
 class Host(object):
     """
@@ -19,6 +26,10 @@ class Host(object):
     """
 
     def __init__(self, species, strain, mass, mu_max, alpha):
+        """
+        Construct a host given its species id, strain id, mass, maximum
+        growth rate, and nutrient affinity.
+        """
         self.species = species
         self.strain = strain
         self.mass = mass
@@ -26,8 +37,11 @@ class Host(object):
         self.alpha = alpha
 
     def __str__(self):
-        return "H(%d): mass = %e, mu_max = %e" %(self.strain, self.mass, \
-                                                 self.mu_max)
+        """
+        Return a string representation of this host.
+        """
+        return "H(sp%d-st%d): mass = %e, mu_max = %e, alpha = %e" \
+            %(self.species, self.strain, self.mass, self.mu_max, self.alpha)
 
 def run(params):
     """
@@ -37,29 +51,31 @@ def run(params):
     random.seed(params["seed"])
     
     P_tot = params["P_tot"]
-    V_init = [Virus(0, 0, params["beta00"]) for i in range(params["V_init"])]
-    H_init = [Host(0, 0, random.uniform(0.5 * params["mass_max"], 
+    V_pop = [Virus(0, 0, params["beta00"]) for i in range(params["V_pop"])]
+    H_pop = [Host(0, 0, random.uniform(0.5 * params["mass_max"], 
                                         params["mass_max"]), params["mu_max00"], params["alpha00"]) \
-              for i in range(params["H_init"])]
+              for i in range(params["H_pop"])]
 
     # Biomass of simulated host population.
-    biomass_sim = sum([host.mass for host in H_init])
+    biomass_sim = sum([host.mass for host in H_pop])
     #biomass_conc = biomass_sim / params["volume"] (TBD)
     DIP = P_tot - biomass_sim
 
-    print "seed = %d" %(params["seed"])
-
-    for t in range(params["iterations"]):
-        V_strains = len({v.strain for v in V_init})
-        V_species = len({v.species for v in V_init})
-        H_strains = len({h.strain for h in H_init})
-        H_species = len({h.species for h in H_init})
+    output = open("results.pkl", "w")
+    pickle.dump(params, output)
+    for t in range(params["epochs"]):
+        print("Epoch %d..." %(t))
+        V_strains = len({v.strain for v in V_pop})
+        V_species = len({v.species for v in V_pop})
+        H_strains = len({h.strain for h in H_pop})
+        H_species = len({h.species for h in H_pop})
                 
-        biomass_sim = sum([j.mass for j in H_init])
-        print "%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\t%d" %(DIP, biomass_sim, DIP + biomass_sim, len(V_init), len(H_init), V_strains, V_species, H_strains, H_species)
+        biomass_sim = sum([j.mass for j in H_pop])
 
-        H_new = []
-        for j in H_init:
+        pickle.dump((V_pop, H_pop), output)
+
+        H_pop_new = []
+        for j in H_pop:
             # Loss due to metabolism
             if params["other_loss_type"] == 1 or params["other_loss_type"] == 2:
                 mass_loss = j.mass * params["other_loss_rate"]
@@ -105,25 +121,27 @@ def run(params):
 
                 d1 = Host(species, strain, j.mass / 2, mu_max, alpha)
                 d2 = Host(species, strain, j.mass / 2, mu_max, alpha)
-                H_new.append(d1)
-                H_new.append(d2)
+                H_pop_new.append(d1)
+                H_pop_new.append(d2)
             else:
-                H_new.append(j)
+                H_pop_new.append(j)
 
-        V_new = []
-        for i in V_init:
+        V_pop_new = []
+        for i in V_pop:
             # Loss.
             if random.random() < params["decay_rate"]:
                 continue
 
             # Infection.
             infected = False
-            for j in H_init:
+            for j in H_pop_new:
                 if i.species != j.species:
                     continue
 
                 p =  i.beta * params["memory"] ** abs(i.strain - j.strain)
                 if random.random() < p: # Virus infects host and multiplies
+                    infected = True
+                    H_pop_new.remove(j)
                     DIP += j.mass
                     for k in range(params["burst_size"]):
                         species = i.species
@@ -142,20 +160,15 @@ def run(params):
                             if abs(beta - i.beta) > params["V_mutation_std"][1]:
                                 strain += 1 if beta - i.beta > 0 else -1
 
-                        V_new.append(Virus(species, strain, beta))
-                    infected = True
-                    if j in H_new:
-                        H_new.remove(j)
+                        V_pop_new.append(Virus(species, strain, beta))
                     break
             
             # No infection.
             if not infected:
-                V_new.append(i)
+                V_pop_new.append(i)
 
-        H_init = H_new
-        V_init = V_new
+        H_pop = H_pop_new
+        V_pop = V_pop_new
 
-        
-        
-        
+    output.close()
         
