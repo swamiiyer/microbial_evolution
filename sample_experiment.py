@@ -11,7 +11,7 @@ def main():
         "epoch" : 1,
         
         # Number of epochs.
-        "epochs" : 200,
+        "epochs" : 100,
 
         # Volume in L.
         "volume" : 1e-6,
@@ -58,7 +58,7 @@ def main():
         "beta00" : 1.5e-10, 
 
         # Infection efficiency.
-        "memory" : 0.9, 
+        "memory" : 0.7, 
 
         # Virus decay rate per h.
         "decay_rate" : 1.4e-2, 

@@ -1,4 +1,4 @@
-import pickle, random, sys
+import gzip, pickle, random, sys
 
 class Virus(object):
     """
@@ -61,7 +61,7 @@ def run(params):
     #biomass_conc = biomass_sim / params["volume"] (TBD)
     DIP = P_tot - biomass_sim
 
-    output = open("results.pkl", "w")
+    output = gzip.open("results.pklz", "wb")
     pickle.dump(params, output)
     for t in range(params["epochs"]):
         print("Epoch %d..." %(t))

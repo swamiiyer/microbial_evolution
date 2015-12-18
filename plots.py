@@ -1,6 +1,7 @@
-import numpy, pickle, sys
+import numpy, gzip, pickle, sys
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
+import matplotlib.cm as cm
 
 def symmetric(sorted_streams, stream_bounds):
     """Symmetric baseline"""
@@ -87,7 +88,7 @@ def stacked_graph(streams, cmap=plt.cm.bone, color_seq='linear', baseline_fn=min
         plt.fill(t_poly, numpy.hstack((bound[0]-baseline,(bound[1]-baseline)[::-1])), facecolor=color, linewidth=0.,edgecolor='none')
         
 def main(args):
-    fh = open("results.pkl", "r")
+    fh = gzip.open("results.pklz", "rb")
     params = pickle.load(fh)
     T = range(params["epochs"])
     biomass_sim, DIP = [], []
@@ -163,21 +164,69 @@ def main(args):
     plt.savefig("figure3.pdf", format = "pdf", bbox_inches = "tight")
     plt.close(3)
 
-    font_prop = font_manager.FontProperties(size = 12)
-    plt.figure(4, figsize = (7, 4.5), dpi = 500)
 
-    fh = open("results.pkl", "r")
+    # font_prop = font_manager.FontProperties(size = 12)
+    # plt.figure(4, figsize = (7, 4.5), dpi = 500)
+    # fh = open("results.pkl", "r")
+    # pickle.load(fh) # params
+    # dsets = numpy.zeros((H_sp_max - H_sp_min + 1, params["epochs"]))
+    # for t in T:
+    #     print "pass 2, epoch %d..." %(t)
+    #     V_pop, H_pop = pickle.load(fh)
+    #     for i, sp in enumerate(range(H_sp_min, H_sp_max + 1)):
+    #         count = sum([1 for host in H_pop if host.species == sp])
+    #         dsets[i, t] = count
+    # stacked_graph(dsets.tolist(), baseline_fn = min_weighted_wiggles, color_seq='random')
+    # plt.savefig("figure4.pdf", format = "pdf", bbox_inches = "tight")
+    # plt.close(4)
+
+    fh = gzip.open("results.pklz", "rb")
     pickle.load(fh) # params
-    dsets = numpy.zeros((H_sp_max - H_sp_min + 1, params["epochs"]))
+    H_dsets = numpy.zeros((H_sp_max - H_sp_min + 1, params["epochs"]))
+    V_dsets = numpy.zeros((V_sp_max - V_sp_min + 1, params["epochs"]))
+    H_survivors = []
     for t in T:
         print "pass 2, epoch %d..." %(t)
         V_pop, H_pop = pickle.load(fh)
         for i, sp in enumerate(range(H_sp_min, H_sp_max + 1)):
             count = sum([1 for host in H_pop if host.species == sp])
-            dsets[i, t] = count
-    stacked_graph(dsets.tolist(), baseline_fn = min_weighted_wiggles, color_seq='random')
+            H_dsets[i, t] = count
+            if t == params["epochs"] - 1:
+                freq = numpy.zeros(H_st_max - H_st_min + 1)
+                for j, st in enumerate(range(H_st_min, H_st_max + 1)):
+                    count = sum([1 for host in H_pop if host.species == sp and host.strain == st]) 
+                    freq[j] = count
+                H_survivors.append(freq)
+
+        for i, sp in enumerate(range(V_sp_min, V_sp_max + 1)):
+            count = sum([1 for virus in V_pop if virus.species == sp])
+            V_dsets[i, t] = count
+
+    print len(H_survivors), H_survivors[0].shape
+
+    font_prop = font_manager.FontProperties(size = 12)
+    plt.figure(4, figsize = (7, 4.5), dpi = 500)
+    im = plt.imshow(H_dsets, interpolation = "nearest", origin = "l", 
+                    cmap = cm.RdYlGn, extent = [0, params["epochs"], H_sp_min, H_sp_max])
+    plt.colorbar(im)
     plt.savefig("figure4.pdf", format = "pdf", bbox_inches = "tight")
     plt.close(4)
+
+    font_prop = font_manager.FontProperties(size = 12)
+    plt.figure(5, figsize = (7, 4.5), dpi = 500)
+    im = plt.imshow(V_dsets, interpolation = "nearest", origin = "l", 
+                    cmap = cm.RdYlGn, extent = [0, params["epochs"], V_sp_min, V_sp_max])
+    plt.colorbar(im)
+    plt.savefig("figure5.pdf", format = "pdf", bbox_inches = "tight")
+    plt.close(5)
+
+    font_prop = font_manager.FontProperties(size = 12)
+    plt.figure(6, figsize = (7, 4.5), dpi = 500)
+    im = plt.imshow(H_survivors, interpolation = "nearest", origin = "l", 
+                    cmap = cm.RdYlGn, extent = [H_st_min, H_st_max, H_sp_min, H_sp_max])
+    plt.colorbar(im)
+    plt.savefig("figure6.pdf", format = "pdf", bbox_inches = "tight")
+    plt.close(5)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
