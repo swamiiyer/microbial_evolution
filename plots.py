@@ -89,7 +89,8 @@ def stacked_graph(streams, cmap=plt.cm.bone, color_seq='linear', baseline_fn=min
         plt.fill(t_poly, numpy.hstack((bound[0]-baseline,(bound[1]-baseline)[::-1])), facecolor=color, linewidth=0.,edgecolor='none')
         
 def main(args):
-    fh = gzip.open("results.pklz", "rb")
+    fname = sys.argv[1]
+    fh = gzip.open(fname, "rb")
     params = pickle.load(fh)
     T = range(params["epochs"])
     biomass_sim, DIP = [], []
