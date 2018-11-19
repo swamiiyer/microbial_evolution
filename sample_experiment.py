@@ -1,11 +1,10 @@
-import microbial_evolution
-import time
+import microbial_evolution, sys, time
 
 def main():
     # Setup simulation parameters.
     params = {
         # Number of epochs in h.
-        "epochs" : 1000,
+        "epochs" : 5000,
 
         # Simulation volume in L.
         "volume" : 1e-6,
@@ -14,19 +13,19 @@ def main():
         "P_tot" : 500,
         
         # Initial virus population size.
-        "V_pop" : 0, 
+        "V_pop" : 500, 
         
         # Initial host population size.
-        "H_pop" : 1000, 
+        "H_pop" : 50, 
 
         # nmol-P per host cell.
         "nmol_P_max" : 1.6e-8, 
 
-        # Nutrient affinity of host strain 0 in L per h per nmol-P.
-        "alpha0" : 0.4,  
+        # Nutrient affinity of initial host strain in L per h per nmol-P.
+        "alpha" : 0.4,  
 
-        # Maximum growth rate of host strain 0 per h.
-        "mu_max0" : 0.16, 
+        # Maximum growth rate of initial host strain per h.
+        "mu_max" : 0.16, 
 
         # Mortality probability of host per h. 
         "mortality_rate" : 1.4e-2, 
@@ -37,20 +36,15 @@ def main():
         # Virus mutation probability.
         "V_mutation_prob" : 0.01, 
 
-        # Virus mutation width (standard deviation); 10% of beta.
-        "V_mutation_std" : 1.5e-11, 
-        
         # Host mutation probability.
         "H_mutation_prob" : 0.05, 
-
-        # Host mutation width (standard deviation); 10% of alpha.
-        "H_mutation_std" : 0.016, 
         
         # Number of viruses produced per infection.
         "burst_size" : 5, 
 
-        # Effective adsorption coefficient of virus strain 0 in L per h per individual.
-        "beta0" : 1.5e-10, 
+        # Effective adsorption coefficient of initial virus strain in L
+        # per h per individual.
+        "beta" : 1.5e-11, 
 
         # Infection efficiency.
         "memory" : 0.7, 
@@ -59,19 +53,23 @@ def main():
         "decay_rate" : 1.4e-2, 
     }
 
-    # Convert units to correspond to simulated volume and time, using normalized cell mass.
+    params["V_mutation_std"] = 0.1 * params["beta"]
+    params["H_mutation_std"] = 0.1 * params["mu_max"]
+    
+    # Convert units to correspond to simulated volume and time, using
+    # normalized cell mass.
     params["P_tot"] =  params["P_tot"] * params["volume"] / params["nmol_P_max"]
-    params["alpha0"] =  params["alpha0"] / params["volume"] * params["nmol_P_max"]
-    params["beta0"] =  params["beta0"] / params["volume"]
+    params["alpha"] =  params["alpha"] / params["volume"] * params["nmol_P_max"]
+    params["beta"] =  params["beta"] / params["volume"]
     params["H_mutation_std"] = params["H_mutation_std"] / params["volume"] * params["nmol_P_max"]
     params["V_mutation_std"] = params["V_mutation_std"] / params["volume"]
 
+    params["V_bin_width"] = 0.1 * params["V_mutation_std"]
+    params["H_bin_width"] = 0.1 * params["H_mutation_std"]
+    
     # Run simulation.
-    microbial_evolution.run(params)
+    fname = sys.argv[0].split('/')[-1].replace('.py', '.pkl')
+    microbial_evolution.run(params, fname)
 
 if __name__ == "__main__":
     main()
-
-
-
-

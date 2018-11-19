@@ -1,73 +1,73 @@
 import gzip, pickle, random, sys
 
-def slot(a, b, x, n = 10):
+def slot(mid, x, dx):
     """
-    Breaks the interval [a, b] into n slots and returns the slot number 
-    [1, n] that x belongs to; returns -1 if x is not in the interval.
+    Breaks the interval [mid / 10, mid * 10] into n slots and returns the 
+    slot number [1, n] that x belongs to; returns -1 if x is not in the 
+    interval.
     """
-    
-    lo = 1
-    hi = n
-    dx = (b - a) / n
-    while lo <= hi:
-        mid = lo + (hi - lo) // 2
-        mid_lo = mid * dx
-        mid_hi = mid_lo + dx
-        if x >= mid_lo and x < mid_hi:
-            return mid
-        elif x < mid_lo:
-            hi = mid - 1
-        else:
-            lo = mid + 1
-    return -1
+
+    y = abs(x)
+    idx = 0
+    lo = mid
+    while y > lo + dx:
+        lo = lo + dx
+        idx += 1
+    if x < mid:
+        idx *= -1
+    return idx
 
 class Virus(object):
     """
     Represents a virus cell.
     """
 
-    def __init__(self, strain, beta):
+    def __init__(self, strain, beta, mutations = 0):
         """ 
         Construct a virus given its strain id, and adsorption coefficient.
         """
         self.strain = strain
         self.beta = beta
+        self.mutations = mutations
 
     def __str__(self):
         """
         Return a string representation of this virus.
         """
-        return "V[%d]: %e" %(self.strain, self.beta)
+        return "V[%d]: %e, %d" %(self.strain, self.beta, self.mutations)
 
 class Host(object):
     """
     Represents a host cell.
     """
 
-    def __init__(self, strain, mass, mu_max):
+    def __init__(self, strain, mass, mu_max, mutations = 0):
         """
         Construct a host given its strain id, mass, and maximum growth rate.
         """
         self.strain = strain
         self.mass = mass
         self.mu_max = mu_max
+        self.mutations = mutations
 
     def __str__(self):
         """
         Return a string representation of this host.
         """
-        return "H[%d]: %e, %e" %(self.strain, self.mass, self.mu_max)
+        return "H[%d]: %e, %e, %d" %(self.strain, self.mass, self.mu_max, self.mutations)
 
-def run(params):
+def run(params, fname):
     """
     Entry point.
     """
 
     P_tot = params["P_tot"]
-    H_pop = [Host(slot(0.05, 0.5, params["mu_max0"], 100), \
-                  random.uniform(0.5, 1.0), params["mu_max0"]) \
+    H_pop = [Host(slot(params["mu_max"],
+                       params["mu_max"], params["H_bin_width"]), \
+                  random.uniform(0.5, 1.0), params["mu_max"]) \
              for i in range(params["H_pop"])]
-    V_pop = [Virus(slot(1e-5, 1e-3, params["beta0"], 100), params["beta0"]) \
+    V_pop = [Virus(slot(params["beta"],
+                        params["beta"], params["V_bin_width"]), params["beta"]) 
              for i in range(params["V_pop"])]
 
     # Biomass of host population in units of individuals.
@@ -76,7 +76,7 @@ def run(params):
     # Dissolved Phosphorous in units of individuals.
     DIP = P_tot - biomass_sim
 
-    output = gzip.open("results.pklz", "wb")
+    output = gzip.open(fname, "wb")
     pickle.dump(params, output)
     for t in range(params["epochs"]):
         print("Epoch %d..." %(t))
@@ -95,7 +95,7 @@ def run(params):
             DIP += mass_loss
 
             # Growth.
-            mu_j = (params["alpha0"] * DIP) / (1 + params["alpha0"] * DIP / j.mu_max)
+            mu_j = (params["alpha"] * DIP) / (1 + params["alpha"] * DIP / j.mu_max)
             delta = j.mass * mu_j
             j.mass += delta
             DIP -= delta
@@ -106,10 +106,11 @@ def run(params):
                 mu_max = j.mu_max
                 if r < params["H_mutation_prob"]:
                     mu_max = max(0, random.gauss(j.mu_max, params["H_mutation_std"]))
-                    strain = slot(0.05, 0.5, mu_max, 100)
-                    assert strain >= 1 and strain <= 100
-                d1 = Host(strain, j.mass / 2, mu_max)
-                d2 = Host(strain, j.mass / 2, mu_max)
+                    strain = slot(params["mu_max"], mu_max, params["H_bin_width"])
+                    j.mutations += strain - j.strain
+                    assert strain != -1
+                d1 = Host(strain, j.mass / 2, mu_max, j.mutations)
+                d2 = Host(strain, j.mass / 2, mu_max, j.mutations)
                 H_pop_new.append(d1)
                 H_pop_new.append(d2)
             else:
@@ -124,7 +125,7 @@ def run(params):
             # Infection.
             infected = False
             for j in H_pop_new:
-                p =  i.beta * len(H_pop_new) * params["memory"] ** abs(i.strain - j.strain)
+                p =  i.beta * len(H_pop_new) * params["memory"] ** abs(i.mutations - j.mutations)
                 if random.random() < p: # Virus infects host and multiplies
                     infected = True
                     H_pop_new.remove(j)
@@ -134,9 +135,10 @@ def run(params):
                         beta = i.beta
                         if random.random() < params["V_mutation_prob"]:
                             beta = max(0, random.gauss(i.beta, params["V_mutation_std"]))
-                            strain = slot(1e-5, 1e-3, beta, 100)
-                            assert strain >= 1 and strain <= 100
-                        V_pop_new.append(Virus(strain, beta))
+                            strain = slot(params["beta"], beta, params["V_bin_width"])
+                            i.mutations += strain - i.strain
+                            assert strain != -1
+                        V_pop_new.append(Virus(strain, beta, i.mutations))
                     break
             
             # No infection.
