@@ -2,59 +2,47 @@ import gzip, pickle, random, sys
 
 def slot(mid, x, dx):
     """
-    Breaks the interval [mid / 10, mid * 10] into n slots and returns the 
-    slot number [1, n] that x belongs to; returns -1 if x is not in the 
-    interval.
+    TBD
     """
 
-    y = abs(x)
-    idx = 0
-    lo = mid
-    while y > lo + dx:
-        lo = lo + dx
-        idx += 1
-    if x < mid:
-        idx *= -1
-    return idx
+    return int((x - mid) // dx)
 
 class Virus(object):
     """
     Represents a virus cell.
     """
 
-    def __init__(self, strain, beta, mutations = 0):
+    def __init__(self, strain, beta):
         """ 
         Construct a virus given its strain id, and adsorption coefficient.
         """
         self.strain = strain
         self.beta = beta
-        self.mutations = mutations
 
     def __str__(self):
         """
         Return a string representation of this virus.
         """
-        return "V[%d]: %e, %d" %(self.strain, self.beta, self.mutations)
+        return "V[%d]: %e" %(self.strain, self.beta)
 
 class Host(object):
     """
     Represents a host cell.
     """
 
-    def __init__(self, strain, mass, mu_max, mutations = 0):
+    def __init__(self, strain, mass, mu_max):
         """
         Construct a host given its strain id, mass, and maximum growth rate.
         """
         self.strain = strain
         self.mass = mass
         self.mu_max = mu_max
-        self.mutations = mutations
 
     def __str__(self):
         """
         Return a string representation of this host.
         """
-        return "H[%d]: %e, %e, %d" %(self.strain, self.mass, self.mu_max, self.mutations)
+        return "H[%d]: %e, %e" %(self.strain, self.mass, self.mu_max)
 
 def run(params, fname):
     """
@@ -80,6 +68,10 @@ def run(params, fname):
     pickle.dump(params, output)
     for t in range(params["epochs"]):
         print("Epoch %d..." %(t))
+        if len(H_pop) == 0:
+            print("Host extinct!")
+        if len(V_pop) == 0:
+            print("Virus extinct!")
         pickle.dump((V_pop, H_pop), output)
 
         H_pop_new = []
@@ -105,12 +97,14 @@ def run(params, fname):
                 strain = j.strain
                 mu_max = j.mu_max
                 if r < params["H_mutation_prob"]:
-                    mu_max = max(0, random.gauss(j.mu_max, params["H_mutation_std"]))
+                    x = random.gauss(j.mu_max, params["H_mutation_std"])
+                    # unidirectional evolution towards decreasing competitive ability
+                    if x > j.mu_max:
+                        x = 2 * j.mu_max - x
+                    mu_max = max(0, x)
                     strain = slot(params["mu_max"], mu_max, params["H_bin_width"])
-                    j.mutations += strain - j.strain
-                    assert strain != -1
-                d1 = Host(strain, j.mass / 2, mu_max, j.mutations)
-                d2 = Host(strain, j.mass / 2, mu_max, j.mutations)
+                d1 = Host(strain, j.mass / 2, mu_max)
+                d2 = Host(strain, j.mass / 2, mu_max)
                 H_pop_new.append(d1)
                 H_pop_new.append(d2)
             else:
@@ -125,7 +119,7 @@ def run(params, fname):
             # Infection.
             infected = False
             for j in H_pop_new:
-                p =  i.beta * len(H_pop_new) * params["memory"] ** abs(i.mutations - j.mutations)
+                p =  i.beta * len(H_pop_new) * params["memory"] ** abs(i.strain - j.strain)
                 if random.random() < p: # Virus infects host and multiplies
                     infected = True
                     H_pop_new.remove(j)
@@ -134,11 +128,13 @@ def run(params, fname):
                         strain = i.strain
                         beta = i.beta
                         if random.random() < params["V_mutation_prob"]:
-                            beta = max(0, random.gauss(i.beta, params["V_mutation_std"]))
+                            x = random.gauss(i.beta, params["V_mutation_std"])
+                            # unidirectional evolution towards decreasing virulence
+                            if x > i.beta:
+                                x = 2 * i.beta - x
+                            beta = max(0, x)
                             strain = slot(params["beta"], beta, params["V_bin_width"])
-                            i.mutations += strain - i.strain
-                            assert strain != -1
-                        V_pop_new.append(Virus(strain, beta, i.mutations))
+                        V_pop_new.append(Virus(strain, beta))
                     break
             
             # No infection.

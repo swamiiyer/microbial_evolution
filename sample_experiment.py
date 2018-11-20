@@ -4,7 +4,7 @@ def main():
     # Setup simulation parameters.
     params = {
         # Number of epochs in h.
-        "epochs" : 5000,
+        "epochs" : 300,
 
         # Simulation volume in L.
         "volume" : 1e-6,
@@ -44,7 +44,7 @@ def main():
 
         # Effective adsorption coefficient of initial virus strain in L
         # per h per individual.
-        "beta" : 1.5e-11, 
+        "beta" : 1.5e-10, 
 
         # Infection efficiency.
         "memory" : 0.7, 
@@ -64,8 +64,8 @@ def main():
     params["H_mutation_std"] = params["H_mutation_std"] / params["volume"] * params["nmol_P_max"]
     params["V_mutation_std"] = params["V_mutation_std"] / params["volume"]
 
-    params["V_bin_width"] = 0.1 * params["V_mutation_std"]
-    params["H_bin_width"] = 0.1 * params["H_mutation_std"]
+    params["V_bin_width"] = 0.2 * params["V_mutation_std"]
+    params["H_bin_width"] = 0.2 * params["H_mutation_std"]
     
     # Run simulation.
     fname = sys.argv[0].split('/')[-1].replace('.py', '.pkl')
