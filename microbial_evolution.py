@@ -5,12 +5,14 @@ class Virus(object):
     Represents a virus cell.
     """
 
-    def __init__(self, ctime, beta):
+    def __init__(self, btime, stime, beta):
         """ 
-        Constructs a virus given its creation time and adsorption coefficient.
+        Constructs a virus given its time of birth, time of speciation, 
+        and adsorption coefficient.
         """
-        
-        self.ctime = ctime
+
+        self.btime = btime
+        self.stime = stime
         self.beta = beta
 
     def __str__(self):
@@ -18,20 +20,21 @@ class Virus(object):
         Returns a string representation of this virus.
         """
         
-        return "V[%d]: %e" %(self.ctime, self.beta)
+        return "V:%d,%d,%e" %(self.btime, self.stime, self.beta)
 
 class Host(object):
     """
     Represents a host cell.
     """
 
-    def __init__(self, ctime, mass, mu_max):
+    def __init__(self, btime, stime, mass, mu_max):
         """
-        Constructs a host given its creation time, mass, and maximum 
-        growth rate.
+        Constructs a host given its time of birth, time of speciation, 
+        mass, and maximum growth rate.
         """
         
-        self.ctime = ctime
+        self.btime = btime
+        self.stime = stime
         self.mass = mass
         self.mu_max = mu_max
 
@@ -40,7 +43,7 @@ class Host(object):
         Returns a string representation of this host.
         """
         
-        return "H[%d]: %e, %e" %(self.ctime, self.mass, self.mu_max)
+        return "H:%d,%d,%e,%e" %(self.btime, self.stime, self.mass, self.mu_max)
 
 def run(params, fname):
     """
@@ -55,8 +58,8 @@ def run(params, fname):
     pickle.dump(params, results)
 
     # Initial virus and host populations.
-    viruses = [Virus(0, params["beta"]) for i in range(params["V_pop"])]
-    hosts = [Host(0, random.uniform(0.5, 1.0), params["mu_max"])
+    viruses = [Virus(0, 0, params["beta"]) for i in range(params["V_pop"])]
+    hosts = [Host(0, 0, random.uniform(0.5, 1.0), params["mu_max"])
              for i in range(params["H_pop"])]
 
     # Biomass of host population in units of individuals.
@@ -82,6 +85,8 @@ def run(params, fname):
 
         # Host dynamics.
         temp_hosts = []
+        cell_divisions = 0 # number of cell divisions in this epoch
+        gtime = 0.0        # average host generation time in this epoch
         for host in hosts:
             # Loss due to mortality.
             if random.random() < params["mortality_rate"]:
@@ -94,26 +99,31 @@ def run(params, fname):
             DIP += mass_loss
 
             # Growth.
-            mu = params["alpha"] * DIP / \
-                 (1 + params["alpha"] * DIP / host.mu_max)
+            mu = params["alpha"] * DIP / (1 + params["alpha"] * DIP / host.mu_max)
             delta = host.mass * mu
             host.mass += delta
             DIP = max(0, DIP - delta)
             if host.mass > 1.0:
                 # Host divides into two daughter cells, with possible mutation.
+                cell_divisions += 1
+                gtime += epoch - host.btime
                 mu_max = host.mu_max
-                ctime = host.ctime
+                stime = host.stime
                 if random.random() < params["H_mutation_prob"]:
-                    mu_max = max(1e-5, random.gauss(host.mu_max,
-                                                 params["mu_max_std"]))
-                    ctime = epoch
-                temp_hosts.append(Host(ctime, host.mass / 2, mu_max))
-                temp_hosts.append(Host(ctime, host.mass / 2, mu_max))
+                    mu_max = max(params["mu_min"],
+                                 random.gauss(host.mu_max, params["mu_max_std"]))
+                    stime = epoch
+                temp_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
+                temp_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
             else:
                 # Host does not divide.
                 temp_hosts.append(host)
+        gtime /= cell_divisions
 
         hosts = temp_hosts
+
+        # DEBUG
+        print("    DIP = %.2f, # hosts = %d, gtime = %.2f" %(DIP, len(hosts), gtime))
         
     # Write the simulation results to the file system.    
     results.close()
