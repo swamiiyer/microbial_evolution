@@ -49,6 +49,9 @@ def main():
     
     # Nutrient affinity of initial host (L per h per individual).
     params["alpha"] = 1.5e-9
+
+    # Minimum growth rate of a host (per h).
+    params["mu_min"] = 1e-9
     
     # Maximum growth rate of initial host (per h).
     params["mu_max"] = 0.16
