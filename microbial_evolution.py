@@ -5,13 +5,12 @@ class Virus(object):
     Represents a virus cell.
     """
 
-    def __init__(self, btime, stime, beta):
+    def __init__(self, stime, beta):
         """ 
-        Constructs a virus given its time of birth, time of speciation, 
-        and adsorption coefficient.
+        Constructs a virus given its time of speciation and adsorption 
+        coefficient.
         """
 
-        self.btime = btime
         self.stime = stime
         self.beta = beta
 
@@ -20,7 +19,7 @@ class Virus(object):
         Returns a string representation of this virus.
         """
         
-        return "V:%d,%d,%e" %(self.btime, self.stime, self.beta)
+        return "V:%d,%e" %(self.stime, self.beta)
 
 class Host(object):
     """
@@ -58,7 +57,7 @@ def run(params, fname):
     pickle.dump(params, results)
 
     # Initial virus and host populations.
-    viruses = [Virus(0, 0, params["beta"]) for i in range(params["V_pop"])]
+    viruses = [Virus(0, params["beta"]) for i in range(params["V_pop"])]
     hosts = [Host(0, 0, random.uniform(0.5, 1.0), params["mu_max"])
              for i in range(params["H_pop"])]
 
@@ -68,7 +67,7 @@ def run(params, fname):
     # Dissolved Phosphorous in units of individuals.
     DIP = params["P_tot"] - biomass_sim
 
-    for epoch in range(params["epochs"]):
+    for epoch in range(1, params["epochs"] + 1):
         print("Epoch %d..." %(epoch))
 
         # Report and quit if virus/host population goes extinct.
@@ -118,12 +117,36 @@ def run(params, fname):
             else:
                 # Host does not divide.
                 temp_hosts.append(host)
-        gtime /= cell_divisions
-
+        gtime = gtime / cell_divisions if cell_divisions > 0 else 0.0
         hosts = temp_hosts
 
+        # Virus dynamics.
+        temp_viruses = []
+        for virus in viruses:
+            # Loss due to decay.
+            if random.random() < params["decay_rate"]:
+                continue
+            
+            # Infection.
+            infected_host = False
+            p = virus.beta * params["memory"] ** abs(virus.stime - host.stime)
+            for host in hosts:
+                if random.random() < p:
+                    # virus infects host and multiplies.
+                    infected_host = True
+                    hosts.remove(host)
+                    DIP += host.mass
+                    for i in range(params["burst_size"]):
+                        beta = max(params["beta_min"],
+                                   random.gauss(virus.beta, params["beta_std"]))
+                        temp_viruses.append(Virus(epoch, beta))
+            if not infected_host:
+                temp_viruses.append(virus)
+        viruses = temp_viruses
+
         # DEBUG
-        print("    DIP = %.2f, # hosts = %d, gtime = %.2f" %(DIP, len(hosts), gtime))
+        print("    DIP = %.2f, # hosts = %d, gtime = %.2f, # viruses = %d"
+              %(DIP, len(hosts), gtime, len(viruses)))
         
     # Write the simulation results to the file system.    
     results.close()
