@@ -67,23 +67,22 @@ def run(params, fname):
     # Dissolved Phosphorous in units of individuals.
     DIP = params["P_tot"] - biomass_sim
 
+    # Evolutionary dynamics of hosts/viruses.
     for epoch in range(1, params["epochs"] + 1):
         print("Epoch %d..." %(epoch))
 
-        # Report and quit if virus/host population goes extinct.
+        # Report if virus/host population goes extinct.
         if len(viruses) == 0:
             print("Virus population extinct!")
-            break
         if len(hosts) == 0:
             print("Host population extinct!")
-            break
 
-        # Save virus/host populations at the current epoch.
+        # Save the virus and host populations.
         pickle.dump(viruses, results)
         pickle.dump(hosts, results)
-
+            
         # Host dynamics.
-        temp_hosts = []
+        next_epoch_hosts = []
         cell_divisions = 0 # number of cell divisions in this epoch
         gtime = 0.0        # average host generation time in this epoch
         for host in hosts:
@@ -99,9 +98,8 @@ def run(params, fname):
 
             # Growth.
             mu = params["alpha"] * DIP / (1 + params["alpha"] * DIP / host.mu_max)
-            delta = host.mass * mu
-            host.mass += delta
-            DIP = max(0, DIP - delta)
+            host.mass += mu
+            DIP = max(0, DIP - mu)
             if host.mass > 1.0:
                 # Host divides into two daughter cells, with possible mutation.
                 cell_divisions += 1
@@ -109,44 +107,57 @@ def run(params, fname):
                 mu_max = host.mu_max
                 stime = host.stime
                 if random.random() < params["H_mutation_prob"]:
-                    mu_max = max(params["mu_min"],
+                    mu_max = max(params["epsilon"],
                                  random.gauss(host.mu_max, params["mu_max_std"]))
                     stime = epoch
-                temp_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
-                temp_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
+                next_epoch_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
+                next_epoch_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
             else:
                 # Host does not divide.
-                temp_hosts.append(host)
+                next_epoch_hosts.append(host)
         gtime = gtime / cell_divisions if cell_divisions > 0 else 0.0
-        hosts = temp_hosts
+        hosts = next_epoch_hosts
 
         # Virus dynamics.
-        temp_viruses = []
+        next_epoch_viruses = []
+        interactions = []
         for virus in viruses:
             # Loss due to decay.
             if random.random() < params["decay_rate"]:
                 continue
             
             # Infection.
-            infected_host = False
+            uninfected_hosts = []
             p = virus.beta * params["memory"] ** abs(virus.stime - host.stime)
             for host in hosts:
                 if random.random() < p:
                     # virus infects host and multiplies.
-                    infected_host = True
-                    hosts.remove(host)
+                    interactions.append((virus, host))
                     DIP += host.mass
+                    stime = virus.stime
+                    beta = virus.beta
                     for i in range(params["burst_size"]):
-                        beta = max(params["beta_min"],
-                                   random.gauss(virus.beta, params["beta_std"]))
-                        temp_viruses.append(Virus(epoch, beta))
-            if not infected_host:
-                temp_viruses.append(virus)
-        viruses = temp_viruses
+                        if random.random() < params["V_mutation_prob"]:
+                            beta = max(params["epsilon"],
+                                       random.gauss(virus.beta, params["beta_std"]))
+                            stime = epoch
+                        next_epoch_viruses.append(Virus(stime, beta))
+                else:
+                    uninfected_hosts.append(host)
+            if len(hosts) == len(uninfected_hosts):
+                # virus failed to infect any host.
+                next_epoch_viruses.append(virus)
+            hosts = uninfected_hosts
+        viruses = next_epoch_viruses
+        
+        # Save the virus-host interactions and the average host
+        # generation time.
+        pickle.dump(interactions, results)
+        pickle.dump(gtime, results)
 
         # DEBUG
-        print("    DIP = %.2f, # hosts = %d, gtime = %.2f, # viruses = %d"
-              %(DIP, len(hosts), gtime, len(viruses)))
+        print("    DIP = %.2f, hosts = %d, gtime = %.2f, viruses = %d, infections = %d"
+              %(DIP, len(hosts), gtime, len(viruses), len(interactions)))
         
     # Write the simulation results to the file system.    
     results.close()

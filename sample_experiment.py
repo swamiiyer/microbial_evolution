@@ -10,7 +10,10 @@ def main():
 
     # Seed for the random number generator.
     params["seed"] = int(time.time())
-        
+
+    # Lower bound for parameters that evolve.
+    params["epsilon"] = 1e-15
+    
     # Number of epochs (h).
     params["epochs"] = 300
 
@@ -25,9 +28,6 @@ def main():
         
     # Adsorption coefficient of initial virus (L per h per individual).
     params["beta"] = 1.5e-10
-
-    # Minimum adsorption coefficient of a virus (per h).
-    params["beta_min"] = 1e-14
 
     # Standard deviation of "beta".
     params["beta_std"] = 0.1 * params["beta"]
@@ -53,9 +53,6 @@ def main():
     # Nutrient affinity of initial host (L per h per individual).
     params["alpha"] = 1.5e-9
 
-    # Minimum growth rate of a host (per h).
-    params["mu_min"] = 1e-5
-    
     # Maximum growth rate of initial host (per h).
     params["mu_max"] = 0.16
 
