@@ -1,17 +1,15 @@
-import gzip, pickle, random, sys
+import gzip, math, pickle, random, sys
 
 class Virus(object):
     """
     Represents a virus cell.
     """
 
-    def __init__(self, stime, beta):
+    def __init__(self, beta):
         """ 
-        Constructs a virus given its time of speciation and adsorption 
-        coefficient.
+        Constructs a virus given its adsorption coefficient.
         """
 
-        self.stime = stime
         self.beta = beta
 
     def __str__(self):
@@ -19,21 +17,18 @@ class Virus(object):
         Returns a string representation of this virus.
         """
         
-        return "V:%d,%e" %(self.stime, self.beta)
+        return "V:%e" %(self.beta)
 
 class Host(object):
     """
     Represents a host cell.
     """
 
-    def __init__(self, btime, stime, mass, mu_max):
+    def __init__(self, mass, mu_max):
         """
-        Constructs a host given its time of birth, time of speciation, 
-        mass, and maximum growth rate.
+        Constructs a host given its mass and maximum growth rate.
         """
         
-        self.btime = btime
-        self.stime = stime
         self.mass = mass
         self.mu_max = mu_max
 
@@ -42,8 +37,25 @@ class Host(object):
         Returns a string representation of this host.
         """
         
-        return "H:%d,%d,%e,%e" %(self.btime, self.stime, self.mass, self.mu_max)
+        return "H:%e,%e" %(self.mass, self.mu_max)
 
+def I(x):
+    """
+    Indicator function: returns 1 if x is positive, and 0 otherwise.
+    """
+
+    return 1 if x > 0 else 0
+    
+def h(k, x):
+    """
+    Smoothed form of the Heaviside step function, with k being the 
+    smoothing parameter. 
+    """
+
+    #return 1.0 / (1.0 + math.exp(-k * x))
+
+    return 1 if x >= 0 else 0
+    
 def run(params, fname):
     """
     Simulates microbial evolution using the specified parameters and saves
@@ -57,8 +69,8 @@ def run(params, fname):
     pickle.dump(params, results)
 
     # Initial virus and host populations.
-    viruses = [Virus(0, params["beta"]) for i in range(params["V_pop"])]
-    hosts = [Host(0, 0, random.uniform(0.5, 1.0), params["mu_max"])
+    viruses = [Virus(params["beta"]) for i in range(params["V_pop"])]
+    hosts = [Host(random.uniform(0.5, 1.0), params["mu_max"])
              for i in range(params["H_pop"])]
 
     # Biomass of host population in units of individuals.
@@ -83,8 +95,6 @@ def run(params, fname):
             
         # Host dynamics.
         next_epoch_hosts = []
-        cell_divisions = 0 # number of cell divisions in this epoch
-        gtime = 0.0        # average host generation time in this epoch
         for host in hosts:
             # Loss due to mortality.
             if random.random() < params["mortality_rate"]:
@@ -102,20 +112,15 @@ def run(params, fname):
             DIP = max(0, DIP - mu)
             if host.mass > 1.0:
                 # Host divides into two daughter cells, with possible mutation.
-                cell_divisions += 1
-                gtime += epoch - host.btime
                 mu_max = host.mu_max
-                stime = host.stime
                 if random.random() < params["H_mutation_prob"]:
                     mu_max = max(params["epsilon"],
                                  random.gauss(host.mu_max, params["mu_max_std"]))
-                    stime = epoch
-                next_epoch_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
-                next_epoch_hosts.append(Host(epoch, stime, host.mass / 2, mu_max))
+                next_epoch_hosts.append(Host(host.mass / 2, mu_max))
+                next_epoch_hosts.append(Host(host.mass / 2, mu_max))
             else:
                 # Host does not divide.
                 next_epoch_hosts.append(host)
-        gtime = gtime / cell_divisions if cell_divisions > 0 else 0.0
         hosts = next_epoch_hosts
 
         # Virus dynamics.
@@ -128,21 +133,25 @@ def run(params, fname):
             
             # Infection.
             uninfected_hosts = []
-            p = virus.beta * params["memory"] ** abs(virus.stime - host.stime)
             for host in hosts:
+                k, m, b, n = params["k"], host.mu_max, virus.beta, params["memory"]
+                d = abs(params["mu_max"] - params["beta"])
+                
+                # Probability that virus infects host. 
+                p = h(k, m - (b + d)) * m * b * (I(n) * n ** abs(m - (b + d)) + (1 - I(n)) * math.exp(-abs(m - (b + d))))
                 if random.random() < p:
                     # virus infects host and multiplies.
                     interactions.append((virus, host))
                     DIP += host.mass
-                    stime = virus.stime
                     beta = virus.beta
                     for i in range(params["burst_size"]):
                         if random.random() < params["V_mutation_prob"]:
                             beta = max(params["epsilon"],
                                        random.gauss(virus.beta, params["beta_std"]))
-                            stime = epoch
-                        next_epoch_viruses.append(Virus(stime, beta))
+                        next_epoch_viruses.append(Virus(beta))
+                    break
                 else:
+                    # host uninfected.
                     uninfected_hosts.append(host)
             if len(hosts) == len(uninfected_hosts):
                 # virus failed to infect any host.
@@ -150,14 +159,12 @@ def run(params, fname):
             hosts = uninfected_hosts
         viruses = next_epoch_viruses
         
-        # Save the virus-host interactions and the average host
-        # generation time.
+        # Save the virus-host interactions.
         pickle.dump(interactions, results)
-        pickle.dump(gtime, results)
 
         # DEBUG
-        print("    DIP = %.2f, hosts = %d, gtime = %.2f, viruses = %d, infections = %d"
-              %(DIP, len(hosts), gtime, len(viruses), len(interactions)))
+        print("    DIP = %.2f, hosts = %d, viruses = %d, infections = %d"
+              %(DIP, len(hosts), len(viruses), len(interactions)))
         
     # Write the simulation results to the file system.    
     results.close()

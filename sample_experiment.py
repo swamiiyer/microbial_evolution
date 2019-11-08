@@ -14,8 +14,11 @@ def main():
     # Lower bound for parameters that evolve.
     params["epsilon"] = 1e-15
     
+    # Smoothing parameter for the Heaviside step function.
+    params["k"] = float('inf')
+    
     # Number of epochs (h).
-    params["epochs"] = 300
+    params["epochs"] = 240
 
     # Simulation volume (L).
     params["volume"] = 1e-6
