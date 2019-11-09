@@ -36,7 +36,7 @@ def main():
     params["beta_std"] = 0.1 * params["beta"]
     
     # Number of viruses produced per infection.
-    params["burst_size"] = 5
+    params["burst_size"] = 10
 
     # Infection efficiency.
     params["memory"] = 0.7

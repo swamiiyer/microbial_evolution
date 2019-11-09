@@ -52,9 +52,7 @@ def h(k, x):
     smoothing parameter. 
     """
 
-    #return 1.0 / (1.0 + math.exp(-k * x))
-
-    return 1 if x >= 0 else 0
+    return 1.0 / (1.0 + math.exp(-k * x))
     
 def run(params, fname):
     """
@@ -132,15 +130,15 @@ def run(params, fname):
                 continue
             
             # Infection.
-            uninfected_hosts = []
+            uninfected_hosts = list(hosts)
             for host in hosts:
                 k, m, b, n = params["k"], host.mu_max, virus.beta, params["memory"]
-                d = abs(params["mu_max"] - params["beta"])
                 
                 # Probability that virus infects host. 
-                p = h(k, m - (b + d)) * m * b * (I(n) * n ** abs(m - (b + d)) + (1 - I(n)) * math.exp(-abs(m - (b + d))))
+                p = h(k, m - b) * m * b * (I(n) * n ** abs(m - b) + (1 - I(n)) * math.exp(-abs(m - b)))
                 if random.random() < p:
                     # virus infects host and multiplies.
+                    uninfected_hosts.remove(host)
                     interactions.append((virus, host))
                     DIP += host.mass
                     beta = virus.beta
@@ -150,9 +148,6 @@ def run(params, fname):
                                        random.gauss(virus.beta, params["beta_std"]))
                         next_epoch_viruses.append(Virus(beta))
                     break
-                else:
-                    # host uninfected.
-                    uninfected_hosts.append(host)
             if len(hosts) == len(uninfected_hosts):
                 # virus failed to infect any host.
                 next_epoch_viruses.append(virus)
