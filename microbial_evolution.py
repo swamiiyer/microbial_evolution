@@ -132,10 +132,12 @@ def run(params, fname):
             # Infection.
             uninfected_hosts = list(hosts)
             for host in hosts:
-                k, m, b, n = params["k"], host.mu_max, virus.beta, params["memory"]
+                k, M, B, n = params["k"],  params["mu_max"], params["beta"], params["memory"]
+                m, b = host.mu_max, virus.beta
+                r = (m - b) / (M - B)
                 
                 # Probability that virus infects host. 
-                p = h(k, m - b) * m * b * (I(n) * n ** abs(m - b) + (1 - I(n)) * math.exp(-abs(m - b)))
+                p = h(k, r) * m * b * (I(n) * n ** r + (1 - I(n)) * math.exp(-r))
                 if random.random() < p:
                     # virus infects host and multiplies.
                     uninfected_hosts.remove(host)
