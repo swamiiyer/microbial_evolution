@@ -1,4 +1,4 @@
-import gzip, pickle, sys
+import dill, gzip, sys
 import matplotlib.pyplot as plt
 
 
@@ -6,17 +6,19 @@ def main():
     fname = sys.argv[1]
 
     fh = gzip.open(fname, "rb")
-    params = pickle.load(fh)
+    params = dill.load(fh)
     for param in params.keys():
         print(f"{param} : {params[param]}")
-    T, V, H, I = [], [], [], []
+    T, DIP, H, V, I = [], [], [], [], []
     for epoch in range(params["epochs"]):
-        viruses = pickle.load(fh)
-        hosts = pickle.load(fh)
-        interactions = pickle.load(fh)
+        dip = dill.load(fh)
+        hosts = dill.load(fh)
+        viruses = dill.load(fh)
+        interactions = dill.load(fh)
         T.append(epoch)
-        V.append(len(viruses))
+        DIP.append(dip)
         H.append(len(hosts))
+        V.append(len(viruses))
         I.append(len(interactions))
     fh.close()
 
@@ -28,17 +30,21 @@ def main():
     plt.rcParams["ytick.labelsize"] = size
     plt.rcParams["legend.fontsize"] = size
 
-    axes = figure.add_subplot(3, 1, 1)
-    axes.set_ylabel("# of viruses")
-    axes.plot(T, V, "r-", alpha = 0.6)
+    axes = figure.add_subplot(4, 1, 1)
+    axes.set_ylabel("DIP")
+    axes.plot(T, DIP, "k-", alpha = 0.6)
 
-    axes = figure.add_subplot(3, 1, 2)
+    axes = figure.add_subplot(4, 1, 2)
     axes.set_ylabel("# of hosts")
     axes.plot(T, H, "b-", alpha = 0.6)
 
-    axes = figure.add_subplot(3, 1, 3)
+    axes = figure.add_subplot(4, 1, 3)
+    axes.set_ylabel("# of viruses")
+    axes.plot(T, V, "r-", alpha = 0.6)
+
+    axes = figure.add_subplot(4, 1, 4)
     axes.set_xlabel("Time (h)")
-    axes.set_ylabel("# of virus/host interactions")
+    axes.set_ylabel("# of infections")
     axes.plot(T, I, "g-", alpha = 0.6)
 
     plt.savefig("%s" % (fname.replace("pkl", "pdf")), format="pdf", bbox_inches="tight")

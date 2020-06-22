@@ -1,92 +1,91 @@
-import microbial_evolution, sys, time
+import math, microbial_evolution, sys, time
+
 
 def main():
-
     #
     # Define parameters.
     #
-    
+
     params = {}
 
     # Seed for the random number generator.
     params["seed"] = int(time.time())
 
-    # Lower bound for parameters that evolve.
-    params["epsilon"] = 1e-15
-    
-    # Smoothing parameter for the Heaviside step function.
-    params["k"] = float('inf')
-    
     # Number of epochs (h).
-    params["epochs"] = 240
+    params["epochs"] = 720
 
     # Simulation volume (L).
     params["volume"] = 1e-6
-        
-    # Total Phosphorous concentration (nmol-P per L).
-    params["P_tot"] = 500
-        
-    # Initial virus population size.
-    params["V_pop"] = 500
-        
-    # Adsorption coefficient of initial virus (L per h per individual).
-    params["beta"] = 1.5e-10
 
-    # Standard deviation of "beta".
-    params["beta_std"] = 0.1 * params["beta"]
-    
+    # Total Phosphorous concentration (nmol-P per L).
+    params["P_tot"] = 71036
+
+    # Phosphorous concentration in a single host (nmol-P).
+    params["nmol_P_max"] = 3.2e-5
+
+    # Washout rate (per h).
+    params["washout_rate"] = 0.2
+
+    # Initial host and virus genotype.
+    params["genotype"] = 0.1
+
+    # Standard deviation for the mutations in host and virus genotype.
+    params["genotype_std"] = 0.005
+
+    # Initial host population size.
+    params["H_pop"] = 46
+
+    # Initial virus population size.
+    params["V_pop"] = 810
+
+    # Nutrient affinity of host (L per h per individual).
+    params["alpha"] = 1.6e-7
+
+    # Maximum growth rate of host (per h).
+    params["mu_max"] = 23.8
+
+    # Growth factor of host (a function of its genotype).
+    params["growth_factor"] = lambda h: 0.8 + (1.2 - 0.8) * math.exp(-20 * (h - 0.5) ** 2)
+
+    # Maximum adsorption rate of virus (L per h per individual).
+    params["beta"] = 6.2e-11
+
     # Number of viruses produced per infection.
     params["burst_size"] = 10
 
-    # Infection efficiency.
-    params["memory"] = 0.7
+    # Specificity of virus.
+    params["specificity"] = 200
+
+    # Host mutation probability.
+    params["H_mutation_prob"] = 0.006
 
     # Virus mutation probability.
-    params["V_mutation_prob"] = 0.01
+    params["V_mutation_prob"] = 0.006
+
+    # Host mortality rate (per h).
+    params["mortality_rate"] = 1.4e-2
+
+    # Host metabolic loss rate (per h). 
+    params["metabolic_loss_rate"] = 1.4e-2
 
     # Virus decay rate (per h).
     params["decay_rate"] = 1.4e-2
 
-    # Initial host population size.
-    params["H_pop"] = 50
-
-    # Phosphorous concentration in a single host (nmol-P).
-    params["nmol_P_max"] = 1.6e-8
-    
-    # Nutrient affinity of initial host (L per h per individual).
-    params["alpha"] = 1.5e-9
-
-    # Maximum growth rate of initial host (per h).
-    params["mu_max"] = 0.16
-
-    # Standard deviation of "mu_max".
-    params["mu_max_std"] = 0.1 * params["mu_max"]
-
-    # Host mutation probability.
-    params["H_mutation_prob"] = 0.05
-    
-    # Host mortality rate (per h). 
-    params["mortality_rate"] = 1.4e-2
-    
-    # Host metabolic loss rate (per h). 
-    params["metabolic_loss_rate"] = 1.4e-2
-
     #
     # Express parameters in terms of simulated volume and normalized cell mass.
     #
-    
-    params["P_tot"]      *= params["volume"] / params["nmol_P_max"]
-    params["beta"]       /= params["volume"]
-    params["beta_std"]   /= params["volume"]
-    params["alpha"]      /= params["volume"]
-    params["mu_max_std"] /= params["volume"]
+
+    params["P_tot"] *= params["volume"] / params["nmol_P_max"]
+    params["alpha"] /= params["volume"]
+    params["beta"] /= params["volume"]
 
     #
     # Run simulation.
     #
-    
+
     fname = sys.argv[0].split('/')[-1].replace('.py', '.pkl')
     microbial_evolution.run(params, fname)
+
 
 if __name__ == "__main__":
     main()
