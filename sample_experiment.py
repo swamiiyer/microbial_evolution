@@ -21,7 +21,7 @@ def main():
     params["P_tot"] = 71036
 
     # Phosphorous concentration in a single host (nmol-P).
-    params["nmol_P_max"] = 3.2e-5
+    params["nmol_P_max"] = 8.3e-5
 
     # Washout rate (per h).
     params["washout_rate"] = 0.2
@@ -42,7 +42,7 @@ def main():
     params["alpha"] = 1.6e-7
 
     # Maximum growth rate of host (per h).
-    params["mu_max"] = 23.8
+    params["mu_max"] = 0.738
 
     # Growth factor of host (a function of its genotype).
     params["growth_factor"] = lambda h: 0.8 + (1.2 - 0.8) * math.exp(-20 * (h - 0.5) ** 2)
