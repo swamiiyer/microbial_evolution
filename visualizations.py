@@ -9,17 +9,11 @@ def main():
     params = dill.load(fh)
     for param in params.keys():
         print(f"{param} : {params[param]}")
-    T, DIP, H, V, I = [], [], [], [], []
-    for epoch in range(params["epochs"]):
-        dip = dill.load(fh)
-        hosts = dill.load(fh)
-        viruses = dill.load(fh)
-        interactions = dill.load(fh)
-        T.append(epoch)
-        DIP.append(dip)
-        H.append(len(hosts))
-        V.append(len(viruses))
-        I.append(len(interactions))
+    T = range(params["epochs"])
+    DIP = dill.load(fh)
+    H = dill.load(fh)
+    V = dill.load(fh)
+    I = dill.load(fh)
     fh.close()
 
     figure = plt.figure(figsize=(8, 6), dpi=500)
