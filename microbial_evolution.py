@@ -43,7 +43,7 @@ def run(params, fname):
     DIP = DIP0
 
     # Evolutionary dynamics of hosts/viruses.
-    for epoch in range(1, params["epochs"] + 1):
+    for epoch in range(params["epochs"]):
         print("Epoch %d..." % (epoch))
 
         # Report if host/virus population goes extinct.
