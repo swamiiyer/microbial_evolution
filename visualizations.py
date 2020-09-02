@@ -16,6 +16,7 @@ def main(args):
     HOST_GTYPE = dill.load(fh)
     HOST_MASS = dill.load(fh)
     VIRUS_GTYPE = dill.load(fh)
+    INFECTION_MAP = dill.load(fh)
     fh.close()
 
     figure = pylab.figure(figsize=(8, 6), dpi=500)
@@ -64,7 +65,7 @@ def main(args):
     img.axes.set_ylabel("Host mass distribution")
     bins = HOST_MASS.shape[0]
     ticks = numpy.arange(0, bins, 10)
-    pylab.yticks(ticks, ticks / bins)
+    pylab.yticks(ticks, numpy.arange(0.5, 1.0, 0.05))
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("figure3.pdf", format="pdf", bbox_inches="tight")
