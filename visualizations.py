@@ -64,7 +64,7 @@ def main(args):
 
     # Figure 2. host genotype distribution vs time
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(HOST_GTYPE, cmap=pylab.cm.Reds, origin='lower')
+    img = pylab.imshow(HOST_GTYPE, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host genotype distribution")
@@ -76,7 +76,7 @@ def main(args):
 
     # Figure 3. host mass distribution vs time
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(HOST_MASS, cmap=pylab.cm.Reds, origin='lower')
+    img = pylab.imshow(HOST_MASS, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host mass distribution")
@@ -88,7 +88,7 @@ def main(args):
 
     # Figure 4. virus genotype distribution vs time
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(VIRUS_GTYPE, cmap=pylab.cm.Reds, origin='lower')
+    img = pylab.imshow(VIRUS_GTYPE, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Virus genotype distribution")
@@ -114,7 +114,7 @@ def main(args):
         cax0.cla()
                  
         norm = matplotlib.colors.Normalize(vmin=0, vmax=max_Interaction)   #fixed color bar for all iterations
-        im = ax0.imshow(INFECTION_MAP[t], cmap=pylab.cm.Reds, origin='lower', norm=norm, animated=True)                 
+        im = ax0.imshow(INFECTION_MAP[t], cmap=pylab.cm.jet, origin='lower', norm=norm, animated=True)                 
         fig.colorbar(im,cax=cax0)
 
         ax0.set_ylabel("Virus, genotype (beta)")    
