@@ -13,6 +13,11 @@ def main(args):
     for param in params.keys():
         print(f"{param} : {params[param]}")
     T = range(params["epochs"])
+    bins = dill.load(fh)
+    min_Host_gen = dill.load(fh)
+    max_Host_gen = dill.load(fh)
+    min_Virus_gen = dill.load(fh)
+    max_Virus_gen = dill.load(fh)
     DIP = dill.load(fh)
     H = dill.load(fh)
     V = dill.load(fh)
@@ -63,7 +68,6 @@ def main(args):
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host genotype distribution")
-    bins = HOST_GTYPE.shape[0]
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, ticks / bins)
     cb = pylab.colorbar(img)
@@ -76,7 +80,6 @@ def main(args):
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host mass distribution")
-    bins = HOST_MASS.shape[0]
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, numpy.arange(0.5, 1.0, 0.05))
     cb = pylab.colorbar(img)
@@ -89,7 +92,6 @@ def main(args):
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Virus genotype distribution")
-    bins = VIRUS_GTYPE.shape[0]
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, ticks / bins)
     cb = pylab.colorbar(img)
