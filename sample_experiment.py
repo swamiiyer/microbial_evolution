@@ -1,7 +1,6 @@
 import math, microbial_evolution, sys, time
 
-
-def main():
+def main(args):
     #
     # Define parameters.
     #
@@ -12,7 +11,7 @@ def main():
     params["seed"] = int(time.time())
 
     # Number of epochs (h).
-    params["epochs"] = 720
+    params["epochs"] = 240
 
     # Simulation volume (L).
     params["volume"] = 1e-6
@@ -26,11 +25,17 @@ def main():
     # Washout rate (per h).
     params["washout_rate"] = 0.2
 
-    # Initial host and virus genotype.
-    params["genotype"] = 0.1
+    # Initial host genotype.
+    params["H_genotype"] = 0.1
 
-    # Standard deviation for the mutations in host and virus genotype.
-    params["genotype_std"] = 0.005
+    # Standard deviation for the mutations in host genotype.
+    params["H_genotype_std"] = 0.005
+
+    # Initial virus genotype.
+    params["V_genotype"] = 0.1
+
+    # Standard deviation for the mutations in virus genotype.
+    params["V_genotype_std"] = 0.005
 
     # Initial host population size.
     params["H_pop"] = 46
@@ -45,7 +50,7 @@ def main():
     params["mu_max"] = 0.738
 
     # Growth factor of host (a function of its genotype).
-    params["growth_factor"] = lambda h: 0.8 + (1.2 - 0.8) * math.exp(-20 * (h - 0.5) ** 2)
+    params["growth_factor"] = lambda h: 0.8 + 0.4 * math.exp(-20 * (h - 0.5) ** 2)
 
     # Maximum adsorption rate of virus (L per h per individual).
     params["beta"] = 6.2e-11
@@ -88,4 +93,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

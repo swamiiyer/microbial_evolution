@@ -34,8 +34,8 @@ def run(params, fname):
     dill.dump(params, results)
 
     # Initial host and virus populations.
-    hosts = [Host(params["genotype"], random.uniform(0.5, 1.0)) for i in range(params["H_pop"])]
-    viruses = [Virus(params["genotype"]) for i in range(params["V_pop"])]
+    hosts = [Host(params["H_genotype"], random.uniform(0.5, 1.0)) for i in range(params["H_pop"])]
+    viruses = [Virus(params["V_genotype"]) for i in range(params["V_pop"])]
 
     # Dissolved Phosphorous in units of individuals.
     biomass = sum([host.mass for host in hosts])
@@ -87,7 +87,7 @@ def run(params, fname):
                 # Host divides into two daughter cells, with possible mutation.
                 genotype = host.genotype
                 if random.random() < params["H_mutation_prob"]:
-                    genotype = min(max(0.0, random.gauss(genotype, params["genotype_std"])), 1.0)
+                    genotype = min(max(0.0, random.gauss(genotype, params["H_genotype_std"])), 1.0)
                 next_epoch_hosts.append(Host(genotype, host.mass / 2))
                 next_epoch_hosts.append(Host(genotype, host.mass / 2))
             else:
@@ -123,7 +123,7 @@ def run(params, fname):
                     for i in range(params["burst_size"]):
                         if random.random() < params["V_mutation_prob"]:
                             genotype = min(max(0.0, random.gauss(genotype,
-                                                                 params["genotype_std"])), 1.0)
+                                                                 params["V_genotype_std"])), 1.0)
                         next_epoch_viruses.append(Virus(genotype))
                     break
 
