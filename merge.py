@@ -11,6 +11,8 @@ def main(args):
     # Get stats across all the replicates.
     print("Computing stats across all replicates...")
     min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype = stats(dirname)
+
+    # For binning.
     hbinwidth = (max_host_genotype - min_host_genotype) / bins
     hbinlist = numpy.arange(min_host_genotype, max_host_genotype + hbinwidth, hbinwidth)
     vbinwidth = (max_virus_genotype - min_virus_genotype) / bins
