@@ -88,8 +88,7 @@ def main(args):
     # Run simulation.
     #
 
-    fname = sys.argv[0].split('/')[-1].replace('.py', '.pkl')
-    microbial_evolution.run(params, fname)
+    microbial_evolution.run(params, args[1] + ".pkl")
 
 
 if __name__ == "__main__":
