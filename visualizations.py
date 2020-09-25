@@ -124,7 +124,8 @@ def main(args):
         return fig, 
 
     simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
-    simulation.save('Interaction.gif', writer='PillowWriter', fps=1)
+    #simulation.save('Interaction.gif', writer='PillowWriter', fps=1)
+    simulation.save('Interaction.mp4', fps=1, dpi=200)    #mp4 format
 
 if __name__ == "__main__":
     main(sys.argv)
