@@ -10,8 +10,9 @@ def main(args):
     # first read the summary file and extract the details
     fh = gzip.open(fname, "rb")
     params = dill.load(fh)
+    print("Parameters:")
     for param in params.keys():
-        print(f"{param} : {params[param]}")
+        print(f"  {param} : {params[param]}")
     T = range(params["epochs"])
     bins = dill.load(fh)
     min_Host_gen = dill.load(fh)
@@ -28,13 +29,13 @@ def main(args):
     INFECTION_MAP = dill.load(fh)
     fh.close()
 
-    # find the max number of interaction
-    max_Interaction=0
-    for j in range(len(INFECTION_MAP[1])):    
-        if max(INFECTION_MAP[1][j]) > max_Interaction:
-            max_Interaction = max(INFECTION_MAP[1][j])
+    # find the max number of infections
+    max_infections=0
+    for v in INFECTION_MAP:
+        max_infections = max(max_infections, v.max())
 
     # Figure 1: 1.1. DIP vs time, 1.2. host abundance vs time, 1.3. virus abundance vs time, 1.4. infection count vs time
+    print("Generating figure1.pdf...")
     figure = pylab.figure(figsize=(8, 6), dpi=500)
     size = 6
     pylab.rcParams["axes.titlesize"] = size
@@ -63,11 +64,12 @@ def main(args):
     pylab.savefig("figure1.pdf", format="pdf", bbox_inches="tight") 
 
     # Figure 2. host genotype distribution vs time
+    print("Generating figure2.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(HOST_GTYPE, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
-    img.axes.set_ylabel("Host genotype distribution")
+    img.axes.set_ylabel("Host genotype")
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, ticks / bins)
     cb = pylab.colorbar(img)
@@ -75,11 +77,12 @@ def main(args):
     pylab.savefig("figure2.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 3. host mass distribution vs time
+    print("Generating figure3.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(HOST_MASS, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
-    img.axes.set_ylabel("Host mass distribution")
+    img.axes.set_ylabel("Host mass")
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, numpy.arange(0.5, 1.0, 0.05))
     cb = pylab.colorbar(img)
@@ -87,11 +90,12 @@ def main(args):
     pylab.savefig("figure3.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 4. virus genotype distribution vs time
+    print("Generating figure4.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(VIRUS_GTYPE, cmap=pylab.cm.jet, origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
-    img.axes.set_ylabel("Virus genotype distribution")
+    img.axes.set_ylabel("Virus genotype")
     ticks = numpy.arange(0, bins, 10)
     pylab.yticks(ticks, ticks / bins)
     cb = pylab.colorbar(img)
@@ -99,6 +103,7 @@ def main(args):
     pylab.savefig("figure4.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 5. time evolution of infection map as a movie
+    print("Generating infections.mp4...")
     fig, (ax0) = plt.subplots(1,1, figsize=(8, 6))
     ax0 = plt.gca()
     # updating the colorbar in each iteration
@@ -106,26 +111,25 @@ def main(args):
     cax0 = ax0_divider.append_axes("right", size="2%", pad="2%")
 
     def updateHist(frame):
-        t=frame        
-        print(" Epoch : %d" %t)
+        t=frame
+        print("  Epoch: %d" %t)
         
         # clear axis  
         ax0.clear()    
         cax0.cla()
                  
-        norm = matplotlib.colors.Normalize(vmin=0, vmax=max_Interaction)   #fixed color bar for all iterations
+        norm = matplotlib.colors.Normalize(vmin=0, vmax=max_infections)   #fixed color bar for all iterations
         im = ax0.imshow(INFECTION_MAP[t], extent=(0, 1, 0, 1), cmap=pylab.cm.jet, origin='lower', norm=norm, animated=True)                 
         fig.colorbar(im,cax=cax0)
 
-        ax0.set_ylabel("Virus, genotype (beta)")    
-        ax0.set_xlabel("Host, genotype (mu_max)")    
-        ax0.set_title('Epoch= {}'.format(t) )
+        ax0.set_ylabel("Virus genotype")
+        ax0.set_xlabel("Host genotype")
+        ax0.set_title(f"Epoch {t}")
         
         return fig, 
 
     simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
-    #simulation.save('Interaction.gif', writer='PillowWriter', fps=1)
-    simulation.save('Interaction.mp4', fps=1, dpi=200)    #mp4 format
+    simulation.save('infections.mp4', fps=1, dpi=200)
 
 if __name__ == "__main__":
     main(sys.argv)
