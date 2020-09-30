@@ -88,7 +88,7 @@ def main(args):
     # Run simulation.
     #
 
-    microbial_evolution.run(params, args[1] + ".pkl")
+    microbial_evolution.run(params, args[1])
 
 
 if __name__ == "__main__":

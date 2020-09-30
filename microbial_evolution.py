@@ -97,7 +97,7 @@ def run(params, fname):
 
         # Virus dynamics.
         next_epoch_viruses = []
-        interactions = []
+        infections = []
         for virus in viruses:
             # Loss due to washout.
             if random.random() < params["washout_rate"]:
@@ -117,7 +117,7 @@ def run(params, fname):
                 if random.random() < p:
                     # Virus infects host and multiplies.
                     uninfected_hosts.remove(host)
-                    interactions.append((virus, host))
+                    infections.append((virus, host))
                     DIP += host.mass
                     genotype = virus.genotype
                     for i in range(params["burst_size"]):
@@ -134,12 +134,12 @@ def run(params, fname):
             hosts = uninfected_hosts
         viruses = next_epoch_viruses
 
-        # Save the virus-host interactions.
-        dill.dump(interactions, results)
+        # Save the virus-host infections.
+        dill.dump(infections, results)
 
         # DEBUG
         print("    DIP = %.2f, hosts = %d, viruses = %d, infections = %d"
-              % (DIP, len(hosts), len(viruses), len(interactions)))
+              % (DIP, len(hosts), len(viruses), len(infections)))
 
     # Write the simulation results to the file system.
     results.close()

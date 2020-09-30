@@ -3,12 +3,11 @@
 To define the parameters for a simulation, create a `.py` file (eg, `sim.py`) using
  `sample_experiment.py` as a template.
 
-To execute the simulation `sim.py`, run the following command within the directory that contains 
-the program.
+To execute the simulation `sim.py`, run the following command
 ```
 $ python3 sim.py <outfile>
 ```
-which will save the simulation results in a file called `<outfile>.pkl` within the same directory.
+which will save (pickle) the simulation results in a file called `<outfile>`.
 
 To merge the replicates (ie, multiple runs with the same set of parameters) of a simulation, run the
  following command
