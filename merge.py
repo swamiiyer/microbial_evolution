@@ -1,5 +1,6 @@
 import dill, glob, gzip, math, numpy, sys
 
+
 # Entry point.
 def main(args):
     # The directory containing the replicates (ie, .pkl files)
@@ -9,7 +10,6 @@ def main(args):
     bins = int(args[2])
 
     # Get stats across all the replicates.
-    print("Computing stats across all replicates...")
     min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype = stats(dirname)
 
     # For binning.
@@ -28,12 +28,13 @@ def main(args):
     HOST_GENOTYPE_DIST, HOST_MASS_DIST, VIRUS_GENOTYPE_DIST = None, None, None
 
     # For each replicate...
+    print("Merging all replicates...")
     for i, pklfile in enumerate(sorted(pklfiles)):
         # Skip over the summarized .pkl file.
         if pklfile.endswith("summary.pkl"):
             continue
 
-        print("Processing %s..." % (pklfile))
+        print("  Processing %s..." % (pklfile))
 
         # Open the .pkl file for the ith replicate.
         fh = gzip.open(pklfile, "rb")
@@ -69,8 +70,10 @@ def main(args):
 
             # Accumulate host genotype distribution for the jth epoch.
             dist = [host.genotype for host in hosts]
-            HOST_GENOTYPE_DIST[:, j] += numpy.histogram(dist, hbinlist, density=False)[0]
-
+            h = numpy.histogram(dist, hbinlist, density=False)[0]
+            if len(h) > bins:
+                h = h[:bins]
+            HOST_GENOTYPE_DIST[:, j] += h
             # Accumulate host mass distribution for the jth epoch.
             dist = [host.mass for host in hosts]
             binwidth = 0.5 / bins
@@ -80,7 +83,10 @@ def main(args):
 
             # Accumulate virus genotype distribution for the jth epoch.
             dist = [virus.genotype for virus in viruses]
-            VIRUS_GENOTYPE_DIST[:, j] += numpy.histogram(dist, vbinlist, density=False)[0]
+            h = numpy.histogram(dist, vbinlist, density=False)[0]
+            if len(h) > bins:
+                h = h[:bins]
+            VIRUS_GENOTYPE_DIST[:, j] += h
 
             # Accumulate infection map for the jth epoch.
             INFECTING_VIRUS_GENOTYPE = []
@@ -124,6 +130,7 @@ def main(args):
 # Returns the minimum and maximum values of the host and virus genotype across all the .pkl files
 # in the specified directory.
 def stats(dirname):
+    print("Computing stats across all replicates...")
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
     params = None
     min_host_genotype, max_host_genotype = math.inf, -math.inf
@@ -131,6 +138,7 @@ def stats(dirname):
     for i, pklfile in enumerate(sorted(pklfiles)):
         if pklfile.endswith("summary.pkl"):
             continue
+        print("  Processing %s..." % (pklfile))
         fh = gzip.open(pklfile, "rb")
         params = dill.load(fh)
         for j in range(0, params["epochs"]):
