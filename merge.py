@@ -12,11 +12,18 @@ def main(args):
     # Get stats across all the replicates.
     min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype = stats(dirname)
 
+    min_host_mass, max_host_mass = 0, 1.0
+
     # For binning.
     hbinwidth = (max_host_genotype - min_host_genotype) / bins
-    hbinlist = numpy.arange(min_host_genotype, max_host_genotype + hbinwidth, hbinwidth)
+    hbinlist = numpy.arange(min_host_genotype, max_host_genotype, hbinwidth)
     vbinwidth = (max_virus_genotype - min_virus_genotype) / bins
-    vbinlist = numpy.arange(min_virus_genotype, max_virus_genotype + vbinwidth, vbinwidth)
+    vbinlist = numpy.arange(min_virus_genotype, max_virus_genotype, vbinwidth)
+    mbinwidth = (max_host_mass - min_host_mass) / bins
+    mbinlist = numpy.arange(min_host_mass, max_host_mass, mbinwidth)
+    assert len(hbinlist) == bins
+    assert len(vbinlist) == bins
+    assert len(mbinlist) == bins
 
     # List of .pkl files within dirname.
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
@@ -49,9 +56,9 @@ def main(args):
             VIRUS_COUNT = numpy.zeros((len(pklfiles), PARAMS["epochs"]))
             INFECTION_COUNT = numpy.zeros((len(pklfiles), PARAMS["epochs"]))
             INFECTION_MAP = [None] * PARAMS["epochs"]
-            HOST_GENOTYPE_DIST = numpy.zeros((bins, PARAMS["epochs"]))
-            HOST_MASS_DIST = numpy.zeros((bins, PARAMS["epochs"]))
-            VIRUS_GENOTYPE_DIST = numpy.zeros((bins, PARAMS["epochs"]))
+            HOST_GENOTYPE_DIST = numpy.zeros((bins - 1, PARAMS["epochs"]))
+            HOST_MASS_DIST = numpy.zeros((bins - 1, PARAMS["epochs"]))
+            VIRUS_GENOTYPE_DIST = numpy.zeros((bins - 1, PARAMS["epochs"]))
 
         # For each epoch...
         for j in range(0, PARAMS["epochs"]):
@@ -70,23 +77,15 @@ def main(args):
 
             # Accumulate host genotype distribution for the jth epoch.
             dist = [host.genotype for host in hosts]
-            h = numpy.histogram(dist, hbinlist, density=False)[0]
-            if len(h) > bins:
-                h = h[:bins]
-            HOST_GENOTYPE_DIST[:, j] += h
+            HOST_GENOTYPE_DIST[:, j] += numpy.histogram(dist, hbinlist, density=False)[0]
+
             # Accumulate host mass distribution for the jth epoch.
             dist = [host.mass for host in hosts]
-            binwidth = 0.5 / bins
-            HOST_MASS_DIST[:, j] += numpy.histogram(dist,
-                                                    numpy.arange(0.5, 1.0 + binwidth, binwidth),
-                                                    density=False)[0]
+            HOST_MASS_DIST[:, j] += numpy.histogram(dist, mbinlist, density=False)[0]
 
             # Accumulate virus genotype distribution for the jth epoch.
             dist = [virus.genotype for virus in viruses]
-            h = numpy.histogram(dist, vbinlist, density=False)[0]
-            if len(h) > bins:
-                h = h[:bins]
-            VIRUS_GENOTYPE_DIST[:, j] += h
+            VIRUS_GENOTYPE_DIST[:, j] += numpy.histogram(dist, vbinlist, density=False)[0]
 
             # Accumulate infection map for the jth epoch.
             INFECTING_VIRUS_GENOTYPE = []
