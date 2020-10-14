@@ -12,18 +12,18 @@ def main(args):
     # Get stats across all the replicates.
     min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype = stats(dirname)
 
-    min_host_mass, max_host_mass = 0, 1.0
+    min_host_mass, max_host_mass = 0.5, 1.0
 
     # For binning.
     hbinwidth = (max_host_genotype - min_host_genotype) / bins
     hbinlist = numpy.arange(min_host_genotype, max_host_genotype, hbinwidth)
-    vbinwidth = (max_virus_genotype - min_virus_genotype) / bins
-    vbinlist = numpy.arange(min_virus_genotype, max_virus_genotype, vbinwidth)
     mbinwidth = (max_host_mass - min_host_mass) / bins
     mbinlist = numpy.arange(min_host_mass, max_host_mass, mbinwidth)
+    vbinwidth = (max_virus_genotype - min_virus_genotype) / bins
+    vbinlist = numpy.arange(min_virus_genotype, max_virus_genotype, vbinwidth)
     assert len(hbinlist) == bins
-    assert len(vbinlist) == bins
     assert len(mbinlist) == bins
+    assert len(vbinlist) == bins
 
     # List of .pkl files within dirname.
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
@@ -113,6 +113,8 @@ def main(args):
     dill.dump(bins, summary)
     dill.dump(min_host_genotype, summary)
     dill.dump(max_host_genotype, summary)
+    dill.dump(min_host_mass, summary)
+    dill.dump(max_host_mass, summary)
     dill.dump(min_virus_genotype, summary)
     dill.dump(max_virus_genotype, summary)
     dill.dump(numpy.average(DIP, 0), summary)
