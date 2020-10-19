@@ -97,8 +97,6 @@ def main(args):
     ticks = numpy.arange(0, bins, 10)
     show_tricks3 = numpy.arange(min_Host_mass, max_Host_mass, (0.1*(max_Host_mass-min_Host_mass)))    #new merge
     pylab.yticks(ticks, [float('{:.2f}'.format(show_item)) for show_item in show_tricks3])            # different method for figure 3 - ticks 
-    print(show_tricks3)
-    print(ticks)
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("figure3.pdf", format="pdf", bbox_inches="tight")
