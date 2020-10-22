@@ -30,7 +30,6 @@ $ python3 visualizations.py summary.pkl
 - Python 3
 - NumPy
 - Matplotlib
-- Dill
 
 ## Contact Us
 
