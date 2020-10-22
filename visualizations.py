@@ -1,5 +1,5 @@
 # visualization code for summary.pkl
-import dill, gzip, numpy, pylab, sys
+import pickle, gzip, numpy, pylab, sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -9,26 +9,26 @@ def main(args):
     fname = args[1]
     # first read the summary file and extract the details
     fh = gzip.open(fname, "rb")
-    params = dill.load(fh)
+    params = pickle.load(fh)
     print("Parameters:")
     for param in params.keys():
         print(f"  {param} : {params[param]}")
     T = range(params["epochs"])
-    bins = dill.load(fh)
-    min_H_gen = dill.load(fh)
-    max_H_gen = dill.load(fh)
-    min_H_mass = dill.load(fh)  #new merge
-    max_H_mass = dill.load(fh)  #new merge
-    min_V_gen = dill.load(fh)
-    max_V_gen = dill.load(fh)
-    DIP = dill.load(fh)
-    H = dill.load(fh)
-    V = dill.load(fh)
-    I = dill.load(fh)
-    HOST_GTYPE = dill.load(fh)
-    HOST_MASS = dill.load(fh)
-    VIRUS_GTYPE = dill.load(fh)
-    INFECTION_MAP = dill.load(fh)
+    bins = pickle.load(fh)
+    min_H_gen = pickle.load(fh)
+    max_H_gen = pickle.load(fh)
+    min_H_mass = pickle.load(fh)  #new merge
+    max_H_mass = pickle.load(fh)  #new merge
+    min_V_gen = pickle.load(fh)
+    max_V_gen = pickle.load(fh)
+    DIP = pickle.load(fh)
+    H = pickle.load(fh)
+    V = pickle.load(fh)
+    I = pickle.load(fh)
+    HOST_GTYPE = pickle.load(fh)
+    HOST_MASS = pickle.load(fh)
+    VIRUS_GTYPE = pickle.load(fh)
+    INFECTION_MAP = pickle.load(fh)
     fh.close()
 
     # 3 float numbers of min and max values
