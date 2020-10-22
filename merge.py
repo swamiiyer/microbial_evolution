@@ -17,13 +17,13 @@ def main(args):
     # For binning.
     hbinwidth = (max_host_genotype - min_host_genotype) / bins
     hbinlist = numpy.arange(min_host_genotype, max_host_genotype, hbinwidth)
+    hbinlist = hbinlist[:bins] if len(hbinlist) > bins else hbinlist
     mbinwidth = (max_host_mass - min_host_mass) / bins
     mbinlist = numpy.arange(min_host_mass, max_host_mass, mbinwidth)
+    mbinlist = mbinlist[:bins] if len(mbinlist) > bins else mbinlist
     vbinwidth = (max_virus_genotype - min_virus_genotype) / bins
     vbinlist = numpy.arange(min_virus_genotype, max_virus_genotype, vbinwidth)
-    assert len(hbinlist) == bins
-    assert len(mbinlist) == bins
-    assert len(vbinlist) == bins
+    vbinlist = vbinlist[:bins] if len(vbinlist) > bins else vbinlist
 
     # List of .pkl files within dirname.
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
