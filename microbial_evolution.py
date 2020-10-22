@@ -1,4 +1,4 @@
-import dill, gzip, math, random
+import gzip, math, pickle, random
 
 
 # Represents a host cell.
@@ -31,7 +31,7 @@ def run(params, fname):
     results = gzip.open(fname, "wb")
 
     # Save the parameter values.
-    dill.dump(params, results)
+    pickle.dump(params, results)
 
     # Initial host and virus populations.
     hosts = [Host(params["H_genotype"], random.uniform(0.5, 1.0)) for i in range(params["H_pop"])]
@@ -56,9 +56,9 @@ def run(params, fname):
         DIP += params["washout_rate"] * (DIP0 - DIP)
 
         # Save the host and virus populations.
-        dill.dump(DIP, results)
-        dill.dump(hosts, results)
-        dill.dump(viruses, results)
+        pickle.dump(DIP, results)
+        pickle.dump(hosts, results)
+        pickle.dump(viruses, results)
 
         # Host dynamics.
         next_epoch_hosts = []
@@ -78,7 +78,7 @@ def run(params, fname):
             DIP += mass_loss
 
             # Growth.
-            gf = params["growth_factor"](host.genotype)
+            gf = eval(params["growth_factor"])(host.genotype)
             mu = gf * params["alpha"] * DIP / (1 + params["alpha"] * DIP / params["mu_max"])
             mass_gain = mu * 1
             host.mass += mass_gain
@@ -135,7 +135,7 @@ def run(params, fname):
         viruses = next_epoch_viruses
 
         # Save the virus-host infections.
-        dill.dump(infections, results)
+        pickle.dump(infections, results)
 
         # DEBUG
         print("    DIP = %.2f, hosts = %d, viruses = %d, infections = %d"

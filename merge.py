@@ -1,4 +1,4 @@
-import dill, glob, gzip, math, numpy, sys
+import glob, gzip, math, numpy, pickle, sys
 
 
 # Entry point.
@@ -47,7 +47,7 @@ def main(args):
         fh = gzip.open(pklfile, "rb")
 
         # Load the experimental parameters.
-        PARAMS = dill.load(fh)
+        PARAMS = pickle.load(fh)
 
         # Initialize data structures.
         if i == 0:
@@ -63,10 +63,10 @@ def main(args):
         # For each epoch...
         for j in range(0, PARAMS["epochs"]):
             # Load data for the jth epoch.
-            dip = dill.load(fh)
-            hosts = dill.load(fh)
-            viruses = dill.load(fh)
-            infections = dill.load(fh)
+            dip = pickle.load(fh)
+            hosts = pickle.load(fh)
+            viruses = pickle.load(fh)
+            infections = pickle.load(fh)
 
             # The net DIP, number of hosts, number of viruses, and number of infections in the jth
             # epoch.
@@ -109,22 +109,22 @@ def main(args):
 
     # Write merged results to summary.pkl.
     summary = gzip.open("%s/summary.pkl" % (dirname), "wb")
-    dill.dump(PARAMS, summary)
-    dill.dump(bins, summary)
-    dill.dump(min_host_genotype, summary)
-    dill.dump(max_host_genotype, summary)
-    dill.dump(min_host_mass, summary)
-    dill.dump(max_host_mass, summary)
-    dill.dump(min_virus_genotype, summary)
-    dill.dump(max_virus_genotype, summary)
-    dill.dump(numpy.average(DIP, 0), summary)
-    dill.dump(numpy.average(HOST_COUNT, 0), summary)
-    dill.dump(numpy.average(VIRUS_COUNT, 0), summary)
-    dill.dump(numpy.average(INFECTION_COUNT, 0), summary)
-    dill.dump(HOST_GENOTYPE_DIST, summary)
-    dill.dump(HOST_MASS_DIST, summary)
-    dill.dump(VIRUS_GENOTYPE_DIST, summary)
-    dill.dump(INFECTION_MAP, summary)
+    pickle.dump(PARAMS, summary)
+    pickle.dump(bins, summary)
+    pickle.dump(min_host_genotype, summary)
+    pickle.dump(max_host_genotype, summary)
+    pickle.dump(min_host_mass, summary)
+    pickle.dump(max_host_mass, summary)
+    pickle.dump(min_virus_genotype, summary)
+    pickle.dump(max_virus_genotype, summary)
+    pickle.dump(numpy.average(DIP, 0), summary)
+    pickle.dump(numpy.average(HOST_COUNT, 0), summary)
+    pickle.dump(numpy.average(VIRUS_COUNT, 0), summary)
+    pickle.dump(numpy.average(INFECTION_COUNT, 0), summary)
+    pickle.dump(HOST_GENOTYPE_DIST, summary)
+    pickle.dump(HOST_MASS_DIST, summary)
+    pickle.dump(VIRUS_GENOTYPE_DIST, summary)
+    pickle.dump(INFECTION_MAP, summary)
     summary.close()
 
 
@@ -141,12 +141,12 @@ def stats(dirname):
             continue
         print("  Processing %s..." % (pklfile))
         fh = gzip.open(pklfile, "rb")
-        params = dill.load(fh)
+        params = pickle.load(fh)
         for j in range(0, params["epochs"]):
-            dip = dill.load(fh)
-            hosts = dill.load(fh)
-            viruses = dill.load(fh)
-            infections = dill.load(fh)
+            dip = pickle.load(fh)
+            hosts = pickle.load(fh)
+            viruses = pickle.load(fh)
+            infections = pickle.load(fh)
             genotypes = [host.genotype for host in hosts]
             min_host_genotype = min(min_host_genotype, min(genotypes))
             max_host_genotype = max(max_host_genotype, max(genotypes))

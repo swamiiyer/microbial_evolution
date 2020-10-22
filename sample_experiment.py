@@ -11,7 +11,7 @@ def main(args):
     params["seed"] = int(time.time())
 
     # Number of epochs (h).
-    params["epochs"] = 240
+    params["epochs"] = 720
 
     # Simulation volume (L).
     params["volume"] = 1e-6
@@ -50,7 +50,7 @@ def main(args):
     params["mu_max"] = 0.738
 
     # Growth factor of host (a function of its genotype).
-    params["growth_factor"] = lambda h: 0.8 + 0.4 * math.exp(-20 * (h - 0.5) ** 2)
+    params["growth_factor"] = "lambda h: 0.8 + 0.4 * math.exp(-20 * (h - 0.5) ** 2)"
 
     # Maximum adsorption rate of virus (L per h per individual).
     params["beta"] = 6.2e-11
