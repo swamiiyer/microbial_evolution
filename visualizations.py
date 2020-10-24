@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.pylab import *
+import matplotlib.colors as colors
+from matplotlib.colors import SymLogNorm
 
 def main(args):
     fname = args[1]
@@ -32,12 +34,12 @@ def main(args):
     fh.close()
 
     # 3 float numbers of min and max values
-    min_Host_gen = float('{:.2f}'.format(min_H_gen))
-    max_Host_gen = float('{:.2f}'.format(max_H_gen))
-    min_Host_mass = float('{:.2f}'.format(min_H_mass))
-    max_Host_mass = float('{:.2f}'.format(max_H_mass))
-    min_Virus_gen = float('{:.2f}'.format(min_V_gen))
-    max_Virus_gen = float('{:.2f}'.format(max_V_gen))
+    min_Host_gen = float('%.2f' %(min_H_gen))
+    max_Host_gen = float('%.2f' %(max_H_gen))
+    min_Host_mass = float('%.2f' %(min_H_mass))
+    max_Host_mass = float('%.2f' %(max_H_mass))
+    min_Virus_gen = float('%.2f' %(min_V_gen))
+    max_Virus_gen = float('%.2f' %(max_V_gen))
 
     # find the max number of infections
     max_infections=0
@@ -76,12 +78,12 @@ def main(args):
     # Figure 2. host genotype distribution vs time
     print("Generating figure2.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(HOST_GTYPE, cmap=pylab.cm.jet, origin='lower')
+    img = pylab.imshow(HOST_GTYPE, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host genotype")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks2 = numpy.arange(min_Host_gen, max_Host_gen, float('{:.2f}'.format(0.1*(max_Host_gen-min_Host_gen))))
+    show_tricks2 = numpy.arange(min_Host_gen, max_Host_gen, float('%.2f' %(0.1*(max_Host_gen-min_Host_gen))))
     pylab.yticks(ticks, show_tricks2)    #new visualization
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
@@ -90,13 +92,13 @@ def main(args):
     # Figure 3. host mass distribution vs time
     print("Generating figure3.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(HOST_MASS, cmap=pylab.cm.jet, origin='lower')
+    img = pylab.imshow(HOST_MASS, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host mass")
     ticks = numpy.arange(0, bins, 10)
     show_tricks3 = numpy.arange(min_Host_mass, max_Host_mass, (0.1*(max_Host_mass-min_Host_mass)))    #new merge
-    pylab.yticks(ticks, [float('{:.2f}'.format(show_item)) for show_item in show_tricks3])            # different method for figure 3 - ticks 
+    pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks3])            # different method for figure 3 - ticks 
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("figure3.pdf", format="pdf", bbox_inches="tight")
@@ -104,12 +106,12 @@ def main(args):
     # Figure 4. virus genotype distribution vs time
     print("Generating figure4.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
-    img = pylab.imshow(VIRUS_GTYPE, cmap=pylab.cm.jet, origin='lower')
+    img = pylab.imshow(VIRUS_GTYPE, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Virus genotype")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks4 = numpy.arange(min_Virus_gen, max_Virus_gen, float('{:.3f}'.format(0.1*(max_Virus_gen-min_Virus_gen))))
+    show_tricks4 = numpy.arange(min_Virus_gen, max_Virus_gen, float('%.3f' %(0.1*(max_Virus_gen-min_Virus_gen))))
     pylab.yticks(ticks, show_tricks4)   #new visualization
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
