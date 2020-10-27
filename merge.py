@@ -11,7 +11,6 @@ def main(args):
 
     # Get stats across all the replicates.
     min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype = stats(dirname)
-
     min_host_mass, max_host_mass = 0.5, 1.0
 
     # For binning.
@@ -43,11 +42,14 @@ def main(args):
 
         print("  Processing %s..." % (pklfile))
 
-        # Open the .pkl file for the ith replicate.
+        # Read the results from the .pkl file for the ith replicate.
         fh = gzip.open(pklfile, "rb")
-
-        # Load the experimental parameters.
         PARAMS = pickle.load(fh)
+        DIP_list = pickle.load(fh)
+        hosts_list = pickle.load(fh)
+        viruses_list = pickle.load(fh)
+        infections_list = pickle.load(fh)
+        fh.close()
 
         # Initialize data structures.
         if i == 0:
@@ -63,10 +65,10 @@ def main(args):
         # For each epoch...
         for j in range(0, PARAMS["epochs"]):
             # Load data for the jth epoch.
-            dip = pickle.load(fh)
-            hosts = pickle.load(fh)
-            viruses = pickle.load(fh)
-            infections = pickle.load(fh)
+            dip = DIP_list[j]
+            hosts = hosts_list[j]
+            viruses = viruses_list[j]
+            infections = infections_list[j]
 
             # The net DIP, number of hosts, number of viruses, and number of infections in the jth
             # epoch.
@@ -142,11 +144,16 @@ def stats(dirname):
         print("  Processing %s..." % (pklfile))
         fh = gzip.open(pklfile, "rb")
         params = pickle.load(fh)
+        DIP_list = pickle.load(fh)
+        hosts_list = pickle.load(fh)
+        viruses_list = pickle.load(fh)
+        infections_list = pickle.load(fh)
+        fh.close()
         for j in range(0, params["epochs"]):
-            dip = pickle.load(fh)
-            hosts = pickle.load(fh)
-            viruses = pickle.load(fh)
-            infections = pickle.load(fh)
+            dip = DIP_list[j]
+            hosts = hosts_list[j]
+            viruses = viruses_list[j]
+            infections = infections_list[j]
             genotypes = [host.genotype for host in hosts]
             min_host_genotype = min(min_host_genotype, min(genotypes))
             max_host_genotype = max(max_host_genotype, max(genotypes))

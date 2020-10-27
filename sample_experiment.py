@@ -1,4 +1,4 @@
-import microbial_evolution, sys, time
+import math, microbial_evolution, sys, time
 
 def main(args):
     #
@@ -62,7 +62,7 @@ def main(args):
     params["specificity"] = 200
 
     # Host mutation probability.
-    params["H_mutation_prob"] = 0.06
+    params["H_mutation_prob"] = 0.006
 
     # Virus mutation probability.
     params["V_mutation_prob"] = 0.006
