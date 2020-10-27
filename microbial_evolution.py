@@ -27,11 +27,6 @@ class Virus(object):
 # Simulates microbial evolution using the specified parameters and saves the results in a file
 # with the given name.
 def run(params, fname):
-    # Open file for saving simulation results.
-    results = gzip.open(fname, "wb")
-
-    # Save the parameter values.
-    pickle.dump(params, results)
 
     # Initial host and virus populations.
     hosts = [Host(params["H_genotype"], random.uniform(0.5, 1.0)) for i in range(params["H_pop"])]
@@ -43,6 +38,7 @@ def run(params, fname):
     DIP = DIP0
 
     # Evolutionary dynamics of hosts/viruses.
+    DIP_list, hosts_list, viruses_list, infections_list = [], [], [], []
     for epoch in range(params["epochs"]):
         print("Epoch %d..." % (epoch))
 
@@ -55,10 +51,10 @@ def run(params, fname):
         # In and out flow of Phosphorous.
         DIP += params["washout_rate"] * (DIP0 - DIP)
 
-        # Save the host and virus populations.
-        pickle.dump(DIP, results)
-        pickle.dump(hosts, results)
-        pickle.dump(viruses, results)
+        # Save the DIP and the host and virus populations.
+        DIP_list.append(DIP)
+        hosts_list.append(hosts)
+        viruses_list.append(viruses)
 
         # Host dynamics.
         next_epoch_hosts = []
@@ -135,11 +131,17 @@ def run(params, fname):
         viruses = next_epoch_viruses
 
         # Save the virus-host infections.
-        pickle.dump(infections, results)
+        infections_list.append(infections)
 
         # DEBUG
         print("    DIP = %.2f, hosts = %d, viruses = %d, infections = %d"
               % (DIP, len(hosts), len(viruses), len(infections)))
 
     # Write the simulation results to the file system.
-    results.close()
+    fh = gzip.open(fname, "wb")
+    pickle.dump(params, fh)
+    pickle.dump(DIP_list, fh)
+    pickle.dump(hosts_list, fh)
+    pickle.dump(viruses_list, fh)
+    pickle.dump(infections_list, fh)
+    fh.close()
