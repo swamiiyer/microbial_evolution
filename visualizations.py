@@ -33,14 +33,25 @@ def main(args):
     INFECTION_MAP = pickle.load(fh)
     fh.close()
 
-    # 3 float numbers of min and max values
+    # 2 float numbers of min and max values
     min_Host_gen = float('%.2f' %(min_H_gen))
     max_Host_gen = float('%.2f' %(max_H_gen))
     min_Host_mass = float('%.2f' %(min_H_mass))
     max_Host_mass = float('%.2f' %(max_H_mass))
     min_Virus_gen = float('%.2f' %(min_V_gen))
     max_Virus_gen = float('%.2f' %(max_V_gen))
-
+    
+    # For binning, from merge.py
+    hbinwidth = (max_Host_gen - min_Host_gen) / bins
+    hbinlist = numpy.arange(min_Host_gen, max_Host_gen, hbinwidth)
+    hbinlist = hbinlist[:bins] if len(hbinlist) > bins else hbinlist
+    mbinwidth = (max_Host_mass - min_Host_mass) / bins
+    mbinlist = numpy.arange(min_Host_mass, max_Host_mass, mbinwidth)
+    mbinlist = mbinlist[:bins] if len(mbinlist) > bins else mbinlist
+    vbinwidth = (max_Virus_gen - min_Virus_gen) / bins
+    vbinlist = numpy.arange(min_Virus_gen, max_Virus_gen, vbinwidth)
+    vbinlist = vbinlist[:bins] if len(vbinlist) > bins else vbinlist
+    
     # find the max number of infections
     max_infections=0
     for v in INFECTION_MAP:
@@ -83,8 +94,8 @@ def main(args):
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host genotype")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks2 = numpy.arange(min_Host_gen, max_Host_gen, float('%.2f' %(0.1*(max_Host_gen-min_Host_gen))))
-    pylab.yticks(ticks, show_tricks2)    #new visualization
+    show_tricks2 = hbinlist[0:-1:10]
+    pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks2])
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("figure2.pdf", format="pdf", bbox_inches="tight")
@@ -97,7 +108,7 @@ def main(args):
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host mass")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks3 = numpy.arange(min_Host_mass, max_Host_mass, (0.1*(max_Host_mass-min_Host_mass)))    #new merge
+    show_tricks3 = mbinlist[0:-1:10]
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks3])            # different method for figure 3 - ticks 
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
@@ -111,8 +122,8 @@ def main(args):
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Virus genotype")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks4 = numpy.arange(min_Virus_gen, max_Virus_gen, float('%.3f' %(0.1*(max_Virus_gen-min_Virus_gen))))
-    pylab.yticks(ticks, show_tricks4)   #new visualization
+    show_tricks4 = vbinlist[0:-1:10]
+    pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks4])
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
     pylab.savefig("figure4.pdf", format="pdf", bbox_inches="tight")
