@@ -145,11 +145,11 @@ def main(args):
         cax0.cla()
                  
         im = ax0.imshow(INFECTION_MAP[t], extent=(0, 1, 0, 1), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower') 
-        #im = ax0.imshow(INFECTION_MAP[t], extent=(min_Host_gen, max_Host_gen, min_Virus_gen, max_Virus_gen), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
+        #im = ax0.imshow(INFECTION_MAP[t], extent=(min_VVirus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
         fig.colorbar(im,cax=cax0)
 
-        ax0.set_ylabel("Virus genotype")
-        ax0.set_xlabel("Host genotype")
+        ax0.set_ylabel("Host genotype")
+        ax0.set_xlabel("Virus genotype")
         ax0.set_title(f"Epoch {t}")
         
         return fig, 
