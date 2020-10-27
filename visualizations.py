@@ -144,8 +144,7 @@ def main(args):
         ax0.clear()    
         cax0.cla()
                  
-        norm = matplotlib.colors.Normalize(vmin=0, vmax=max_infections)   #fixed color bar for all iterations
-        im = ax0.imshow(INFECTION_MAP[t], extent=(0, 1, 0, 1), cmap=pylab.cm.jet, origin='lower', norm=norm, animated=True)                 
+        im = ax0.imshow(INFECTION_MAP[t], extent=(0, 1, 0, 1), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')           
         fig.colorbar(im,cax=cax0)
 
         ax0.set_ylabel("Virus genotype")
