@@ -144,8 +144,8 @@ def main(args):
         ax0.clear()    
         cax0.cla()
                  
-        #im = ax0.imshow(INFECTION_MAP[t], extent=(0, 1, 0, 1), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower') 
-        im = ax0.imshow(INFECTION_MAP[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
+        norm_Log=colors.SymLogNorm(linthresh = 1, linscale=1.0, vmin=0, vmax=max_infections, clip=False)     #fixed colorbar
+        im = ax0.imshow(INFECTION_MAP[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower')
         fig.colorbar(im,cax=cax0)
 
         ax0.set_ylabel("Host genotype")
