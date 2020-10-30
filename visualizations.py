@@ -1,5 +1,5 @@
 # visualization code for summary.pkl
-import pickle, gzip, numpy, pylab, sys
+import pickle, lzma, numpy, pylab, sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -10,7 +10,7 @@ from matplotlib.colors import SymLogNorm
 def main(args):
     fname = args[1]
     # first read the summary file and extract the details
-    fh = gzip.open(fname, "rb")
+    fh = lzma.open(fname, "rb")
     params = pickle.load(fh)
     print("Parameters:")
     for param in params.keys():

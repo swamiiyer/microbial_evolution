@@ -1,4 +1,4 @@
-import gzip, math, pickle, random
+import lzma, math, pickle, random
 
 
 # Represents a host cell.
@@ -138,7 +138,7 @@ def run(params, fname):
               % (DIP, len(hosts), len(viruses), len(infections)))
 
     # Write the simulation results to the file system.
-    fh = gzip.open(fname, "wb")
+    fh = lzma.open(fname, "wb")
     pickle.dump(params, fh)
     pickle.dump(DIP_list, fh)
     pickle.dump(hosts_list, fh)

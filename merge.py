@@ -1,4 +1,4 @@
-import glob, gzip, math, numpy, pickle, sys
+import glob, lzma, math, numpy, pickle, sys
 
 
 # Entry point.
@@ -43,7 +43,7 @@ def main(args):
         print("  Processing %s..." % (pklfile))
 
         # Read the results from the .pkl file for the ith replicate.
-        fh = gzip.open(pklfile, "rb")
+        fh = lzma.open(pklfile, "rb")
         PARAMS = pickle.load(fh)
         DIP_list = pickle.load(fh)
         hosts_list = pickle.load(fh)
@@ -110,7 +110,7 @@ def main(args):
     VIRUS_GENOTYPE_DIST /= len(pklfiles)
 
     # Write merged results to summary.pkl.
-    summary = gzip.open("%s/summary.pkl" % (dirname), "wb")
+    summary = lzma.open("%s/summary.pkl" % (dirname), "wb")
     pickle.dump(PARAMS, summary)
     pickle.dump(bins, summary)
     pickle.dump(min_host_genotype, summary)
@@ -142,7 +142,7 @@ def stats(dirname):
         if pklfile.endswith("summary.pkl"):
             continue
         print("  Processing %s..." % (pklfile))
-        fh = gzip.open(pklfile, "rb")
+        fh = lzma.open(pklfile, "rb")
         params = pickle.load(fh)
         DIP_list = pickle.load(fh)
         hosts_list = pickle.load(fh)
