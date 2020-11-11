@@ -27,7 +27,6 @@ class Virus(object):
 # Simulates microbial evolution using the specified parameters and saves the results in a file
 # with the given name.
 def run(params, fname):
-
     # Initial host and virus populations.
     hosts = [Host(params["H_genotype"], random.uniform(0.5, 1.0)) for i in range(params["H_pop"])]
     viruses = [Virus(params["V_genotype"]) for i in range(params["V_pop"])]
@@ -74,8 +73,8 @@ def run(params, fname):
             DIP += mass_loss
 
             # Growth.
-            gf = eval(params["growth_factor"])(host.genotype)
-            mu = gf * params["alpha"] * DIP / (1 + params["alpha"] * DIP / params["mu_max"])
+            alpha = params["alpha"] / params["H_genotype"] * host.genotype
+            mu = alpha * DIP / (1 + alpha * DIP / params["mu_max"])
             mass_gain = mu * 1
             host.mass += mass_gain
             DIP = max(0, DIP - mass_gain)
@@ -106,11 +105,10 @@ def run(params, fname):
             # Infection.
             uninfected_hosts = list(hosts)
             for host in hosts:
-                # Probability p that virus infects host.
-                h, v = host.genotype, virus.genotype
-                b, s = params["beta"], params["specificity"]
-                p = b * math.exp(-s * (h - v) ** 2)
-                if random.random() < p:
+                # Probability that virus infects host.
+                beta = params["beta"] / params["H_genotype"] * host.genotype * \
+                       math.exp((virus.genotype - host.genotype) ** 2)
+                if random.random() < beta:
                     # Virus infects host and multiplies.
                     uninfected_hosts.remove(host)
                     infections.append((virus, host))

@@ -1,4 +1,5 @@
-import math, microbial_evolution, sys, time
+import microbial_evolution, sys, time
+
 
 def main(args):
     #
@@ -49,17 +50,11 @@ def main(args):
     # Maximum growth rate of host (per h).
     params["mu_max"] = 0.738
 
-    # Growth factor of host (a function of its genotype).
-    params["growth_factor"] = "lambda h: 0.8 + 0.4 * math.exp(-20 * (h - 0.5) ** 2)"
-
     # Maximum adsorption rate of virus (L per h per individual).
     params["beta"] = 6.2e-11
 
     # Number of viruses produced per infection.
     params["burst_size"] = 10
-
-    # Specificity of virus.
-    params["specificity"] = 200
 
     # Host mutation probability.
     params["H_mutation_prob"] = 0.006
