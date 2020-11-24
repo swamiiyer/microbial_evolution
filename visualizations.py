@@ -6,6 +6,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.pylab import *
 import matplotlib.colors as colors
 from matplotlib.colors import SymLogNorm
+from itertools import chain 
 
 def main(args):
     fname = args[1]
@@ -157,5 +158,61 @@ def main(args):
     simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
     simulation.save('infections.mp4', fps=1, dpi=200)
 
+    # calculating Beta from summary.pkl
+    # """"""" MUST BE REMOVED AFTER ADDING Beta AS AN OUTPUT OF SUMMARY.PKL""""""""""
+    Beta =[]
+    for t in T:
+        beta1 = []
+        #print(t)
+        for row in range(len(INFECTION_MAP[t][:])):
+            beta2 = []
+            for column in range(len(INFECTION_MAP[t][row][:])):
+                host_GType_inf = INFECTION_MAP[t][row][column]
+                virus_GType_inf = INFECTION_MAP[t][row][column]
+                beta = (params["beta"] / params["H_genotype"] * host_GType_inf * math.exp(- (virus_GType_inf - host_GType_inf)** 2))
+                beta2.append(beta)                
+            beta1.append(beta2)            
+        Beta.append(beta1)
+    # """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    # find the max value of Beta for binnings
+    max_Beta = 0
+    min_Beta = 0
+    for t in T:
+        for b in Beta[t]:
+            max_Beta = max(max_Beta, max(b))
+    print(max_Beta)
+
+    bins_beta = 5 * bins                    # different bins for Beta
+    Bbinwidth = (max_Beta - min_Beta) / (bins_beta)
+    Bbinlist = numpy.arange(min_Beta, max_Beta, Bbinwidth)
+    Bbinlist = Bbinlist[:bins] if len(Bbinlist) > bins_beta else Bbinlist
+
+    # Figure 6. time evolution of beta as a movie
+    print("Generating interaction vs beta.mp4...")
+    fig1, (ax0) = plt.subplots(1, 1, figsize=(8, 6))
+    def updateHist_B(frame):
+        t=frame
+        print("  Epoch: %d" %t)
+
+        # clear axis  
+        ax0.clear()    
+        if len(list(chain.from_iterable(Beta[t]))) == 0:      # in case of extinction of virus 
+            ax0.plot([])
+        else:
+            ax0.hist(list(chain.from_iterable(Beta[t])), bins=Bbinlist, normed=True, animated=True)
+            ax0.set_yscale('log')           # using log for y-axis for better visualization
+
+        ax0.set_ylabel("Abundency- Beta (log)")
+        ax0.set_xlabel("bins- Beta")
+        ax0.set_title(f"Epoch {t}")
+        #ax0.set_ylim(0.0, 10)
+
+        return fig1, 
+
+    simulation1 = animation.FuncAnimation(fig1, updateHist_B, frames=len(T), blit=True)
+    simulation1.save('figure6.mp4', fps=1, dpi=200)
+    
+    
 if __name__ == "__main__":
     main(sys.argv)
