@@ -78,7 +78,7 @@ def main(args):
             INFECTION_COUNT[i, j] = len(infections)
 
             # Accumulate host genotype distribution for the jth epoch.
-            dist = [host.genotype for host in hosts]
+            dist = [host.g for host in hosts]
             HOST_GENOTYPE_DIST[:, j] += numpy.histogram(dist, hbinlist, density=False)[0]
 
             # Accumulate host mass distribution for the jth epoch.
@@ -86,15 +86,15 @@ def main(args):
             HOST_MASS_DIST[:, j] += numpy.histogram(dist, mbinlist, density=False)[0]
 
             # Accumulate virus genotype distribution for the jth epoch.
-            dist = [virus.genotype for virus in viruses]
+            dist = [virus.g for virus in viruses]
             VIRUS_GENOTYPE_DIST[:, j] += numpy.histogram(dist, vbinlist, density=False)[0]
 
             # Accumulate infection map for the jth epoch.
             INFECTING_VIRUS_GENOTYPE = []
             INFECTED_HOST_GENOTYPE = []
             for virus, host in infections:
-                INFECTING_VIRUS_GENOTYPE.append(virus.genotype)
-                INFECTED_HOST_GENOTYPE.append(host.genotype)
+                INFECTING_VIRUS_GENOTYPE.append(virus.g)
+                INFECTED_HOST_GENOTYPE.append(host.g)
             hist = numpy.histogram2d(INFECTED_HOST_GENOTYPE, INFECTING_VIRUS_GENOTYPE,
                                      (hbinlist, vbinlist), normed=False)[0]
             if (i == 0):
@@ -154,10 +154,10 @@ def stats(dirname):
             hosts = hosts_list[j]
             viruses = viruses_list[j]
             infections = infections_list[j]
-            genotypes = [host.genotype for host in hosts]
+            genotypes = [host.g for host in hosts]
             min_host_genotype = min(min_host_genotype, min(genotypes))
             max_host_genotype = max(max_host_genotype, max(genotypes))
-            genotypes = [virus.genotype for virus in viruses]
+            genotypes = [virus.g for virus in viruses]
             min_virus_genotype = min(min_virus_genotype, min(genotypes))
             max_virus_genotype = max(max_virus_genotype, max(genotypes))
     return min_host_genotype, max_host_genotype, min_virus_genotype, max_virus_genotype
