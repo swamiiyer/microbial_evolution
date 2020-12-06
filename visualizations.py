@@ -169,7 +169,7 @@ def main(args):
             for column in range(len(INFECTION_MAP[t][row][:])):
                 host_GType_inf = INFECTION_MAP[t][row][column]
                 virus_GType_inf = INFECTION_MAP[t][row][column]
-                beta = (params["beta"] / params["H_genotype"] * host_GType_inf * math.exp(- (virus_GType_inf - host_GType_inf)** 2))
+                beta = (params["betaMax"] / params["hG0"] * host_GType_inf * math.exp(- (virus_GType_inf - host_GType_inf)** 2))
                 beta2.append(beta)                
             beta1.append(beta2)            
         Beta.append(beta1)
@@ -188,8 +188,8 @@ def main(args):
     Bbinlist = numpy.arange(min_Beta, max_Beta, Bbinwidth)
     Bbinlist = Bbinlist[:bins] if len(Bbinlist) > bins_beta else Bbinlist
 
-    # Figure 6. time evolution of beta as a movie
-    print("Generating interaction vs beta.mp4...")
+    # Figure 6. histogram of beta in each iteration
+    print("Generating hist of beta.mp4...")
     fig1, (ax0) = plt.subplots(1, 1, figsize=(8, 6))
     def updateHist_B(frame):
         t=frame
@@ -212,6 +212,35 @@ def main(args):
 
     simulation1 = animation.FuncAnimation(fig1, updateHist_B, frames=len(T), blit=True)
     simulation1.save('figure6.mp4', fps=1, dpi=200)
+    
+    # Figure 7. time evolution of Beta as a movie
+    print("Generating Beta.mp4...")
+    fig, (ax0) = plt.subplots(1,1, figsize=(8, 6))
+    ax0 = plt.gca()
+    # updating the colorbar in each iteration
+    ax0_divider = make_axes_locatable(ax0)
+    cax0 = ax0_divider.append_axes("right", size="2%", pad="2%")
+
+    def updateHist(frame):
+        t=frame
+        print("  Epoch: %d" %t)
+
+        # clear axis  
+        ax0.clear()    
+        cax0.cla()
+        
+        norm_Log = colors.LogNorm(vmin=0.00001, vmax=max_Beta)  # vmin should be > 0.
+        im = ax0.imshow(Beta[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower')  
+        fig.colorbar(im,cax=cax0)
+
+        ax0.set_ylabel("Host")
+        ax0.set_xlabel("Virus")
+        ax0.set_title(f"Epoch {t}: Beta")
+
+        return fig, 
+
+    simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
+    simulation.save('Beta_Guass.mp4', fps=1, dpi=200)
     
     
 if __name__ == "__main__":
