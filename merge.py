@@ -29,7 +29,7 @@ def main(args):
 
     # Data structures.
     params = None
-    dip, hostCount, virusCount, infectionCount = None, None, None, None
+    dipVal, hostCount, virusCount, infectionCount = None, None, None, None
     infectionMap = None
     hostGDist, hostMassDist, virusGDist = None, None, None
 
@@ -53,7 +53,7 @@ def main(args):
 
         # Initialize data structures.
         if i == 0:
-            dip = numpy.zeros((len(pklfiles), params["epochs"]))
+            dipVal = numpy.zeros((len(pklfiles), params["epochs"]))
             hostCount = numpy.zeros((len(pklfiles), params["epochs"]))
             virusCount = numpy.zeros((len(pklfiles), params["epochs"]))
             infectionCount = numpy.zeros((len(pklfiles), params["epochs"]))
@@ -72,7 +72,7 @@ def main(args):
 
             # The net DIP, number of hosts, number of viruses, and number of infections in the jth
             # epoch.
-            dip[i, j] = dip
+            dipVal[i, j] = dip
             hostCount[i, j] = len(hosts)
             virusCount[i, j] = len(viruses)
             infectionCount[i, j] = len(infections)
@@ -119,7 +119,7 @@ def main(args):
     pickle.dump(maxHMass, summary)
     pickle.dump(minVG, summary)
     pickle.dump(maxVG, summary)
-    pickle.dump(numpy.average(dip, 0), summary)
+    pickle.dump(numpy.average(dipVal, 0), summary)
     pickle.dump(numpy.average(hostCount, 0), summary)
     pickle.dump(numpy.average(virusCount, 0), summary)
     pickle.dump(numpy.average(infectionCount, 0), summary)
