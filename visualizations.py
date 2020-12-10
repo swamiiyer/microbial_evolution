@@ -99,7 +99,7 @@ def main(args):
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks2])
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
-    pylab.savefig("figure2.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Host_Gen.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 3. host mass distribution vs time
     print("Generating figure3.pdf...")
@@ -113,7 +113,7 @@ def main(args):
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks3])            # different method for figure 3 - ticks 
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
-    pylab.savefig("figure3.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Host_Mass.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 4. virus genotype distribution vs time
     print("Generating figure4.pdf...")
@@ -127,7 +127,7 @@ def main(args):
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks4])
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
-    pylab.savefig("figure4.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Virus_Gen.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 5. time evolution of infection map as a movie
     print("Generating infections.mp4...")
@@ -211,7 +211,7 @@ def main(args):
         return fig1, 
 
     simulation1 = animation.FuncAnimation(fig1, updateHist_B, frames=len(T), blit=True)
-    simulation1.save('figure6.mp4', fps=1, dpi=200)
+    simulation1.save('hist_Beta.mp4', fps=1, dpi=200)
     
     # Figure 7. time evolution of Beta as a movie
     print("Generating Beta.mp4...")
@@ -240,7 +240,7 @@ def main(args):
         return fig, 
 
     simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
-    simulation.save('Beta_Guass.mp4', fps=1, dpi=200)
+    simulation.save('Beta_Map.mp4', fps=1, dpi=200)
     
     
 if __name__ == "__main__":
