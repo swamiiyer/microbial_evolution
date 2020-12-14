@@ -56,12 +56,16 @@ def main(args):
     # find the max number of infections
     max_infections=0
     for v in INFECTION_MAP:
-        max_infections = max(max_infections, v.max())
+        max_infections = max(max_infections, v.max())        
+        
+    # frame speed for movies (figures 5 and 7): only show every 10th epoch
+    fr_spd = 10
+    fr = int(len(T) / fr_spd)    
 
     # Figure 1: 1.1. DIP vs time, 1.2. host abundance vs time, 1.3. virus abundance vs time, 1.4. infection count vs time
     print("Generating figure1.pdf...")
     figure = pylab.figure(figsize=(8, 6), dpi=500)
-    size = 6
+    size = 10
     pylab.rcParams["axes.titlesize"] = size
     pylab.rcParams["axes.labelsize"] = size
     pylab.rcParams["xtick.labelsize"] = size
@@ -71,14 +75,17 @@ def main(args):
     axes = figure.add_subplot(4, 1, 1)  # Figure 1.1. DIP vs time
     axes.set_ylabel("DIP")
     axes.plot(T, DIP, "k-", alpha=0.6)
+    axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 2)  # Figure 1.2. host abundance vs time
     axes.set_ylabel("# of hosts")
     axes.plot(T, H, "b-", alpha=0.6)
+    axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 3)  # Figure 1.3. virus abundance vs time
     axes.set_ylabel("# of viruses")
     axes.plot(T, V, "r-", alpha=0.6)
+    axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 4)  # Figure 1.4. infection count vs time
     axes.set_xlabel("Time (h)")
@@ -99,7 +106,7 @@ def main(args):
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks2])
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
-    pylab.savefig("Host_Gen.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Host_Genotype.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 3. host mass distribution vs time
     print("Generating figure3.pdf...")
@@ -127,18 +134,18 @@ def main(args):
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks4])
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
-    pylab.savefig("Virus_Gen.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Virus_Genotype.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 5. time evolution of infection map as a movie
     print("Generating infections.mp4...")
-    fig, (ax0) = plt.subplots(1,1, figsize=(8, 6))
+    fig, (ax0) = plt.subplots(1,1)
     ax0 = plt.gca()
     # updating the colorbar in each iteration
     ax0_divider = make_axes_locatable(ax0)
     cax0 = ax0_divider.append_axes("right", size="2%", pad="2%")
 
     def updateHist(frame):
-        t=frame
+        t=frame * fr_spd
         print("  Epoch: %d" %t)
         
         # clear axis  
@@ -146,8 +153,10 @@ def main(args):
         cax0.cla()
                  
         norm_Log=colors.SymLogNorm(linthresh = 0.01, linscale=1.0, vmin=0, vmax=max_infections, clip=False)     #fixed colorbar
-        im = ax0.imshow(INFECTION_MAP[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower')
+        im = ax0.imshow(INFECTION_MAP[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower', aspect='auto')
         fig.colorbar(im,cax=cax0)
+        cax0.set_ylabel('# of infections', rotation=270, fontsize= 8)
+        #cax0.set_yticklabels(fontsize=10)
 
         ax0.set_ylabel("Host genotype")
         ax0.set_xlabel("Virus genotype")
@@ -155,11 +164,10 @@ def main(args):
         
         return fig, 
 
-    simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
-    simulation.save('infections.mp4', fps=1, dpi=200)
+    simulation = animation.FuncAnimation(fig, updateHist, frames=fr, blit=True)
+    simulation.save('infections.mp4', fps=5, dpi=200)
 
     # calculating Beta from summary.pkl
-    # """"""" MUST BE REMOVED AFTER ADDING Beta AS AN OUTPUT OF SUMMARY.PKL""""""""""
     Beta =[]
     for t in T:
         beta1 = []
@@ -190,7 +198,7 @@ def main(args):
 
     # Figure 6. histogram of beta in each iteration
     print("Generating hist of beta.mp4...")
-    fig1, (ax0) = plt.subplots(1, 1, figsize=(8, 6))
+    fig1, (ax0) = plt.subplots(1, 1)
     def updateHist_B(frame):
         t=frame
         print("  Epoch: %d" %t)
@@ -200,7 +208,7 @@ def main(args):
         if len(list(chain.from_iterable(Beta[t]))) == 0:      # in case of extinction of virus 
             ax0.plot([])
         else:
-            ax0.hist(list(chain.from_iterable(Beta[t])), bins=Bbinlist, density=False)
+            ax0.hist(list(chain.from_iterable(Beta[t])), bins=Bbinlist, density=False, aspect='auto')
             ax0.set_yscale('log')           # using log for y-axis for better visualization
 
         ax0.set_ylabel("Abundency- Beta (log)")
@@ -215,14 +223,15 @@ def main(args):
     
     # Figure 7. time evolution of Beta as a movie
     print("Generating Beta.mp4...")
-    fig, (ax0) = plt.subplots(1,1, figsize=(8, 6))
+    fig, (ax0) = plt.subplots(1,1)
     ax0 = plt.gca()
     # updating the colorbar in each iteration
     ax0_divider = make_axes_locatable(ax0)
     cax0 = ax0_divider.append_axes("right", size="2%", pad="2%")
 
     def updateHist(frame):
-        t=frame
+        
+        t=frame * fr_spd       
         print("  Epoch: %d" %t)
 
         # clear axis  
@@ -230,17 +239,18 @@ def main(args):
         cax0.cla()
         
         norm_Log = colors.LogNorm(vmin=0.00001, vmax=max_Beta)  # vmin should be > 0.
-        im = ax0.imshow(Beta[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower')  
+        im = ax0.imshow(Beta[t], extent=(min_Virus_gen, max_Virus_gen, min_Host_gen, max_Host_gen), norm=norm_Log , cmap='jet', origin='lower', aspect='auto')  
         fig.colorbar(im,cax=cax0)
+        cax0.set_ylabel('Beta', rotation=270, fontsize= 8)
 
-        ax0.set_ylabel("Host")
-        ax0.set_xlabel("Virus")
-        ax0.set_title(f"Epoch {t}: Beta")
+        ax0.set_ylabel("Host genotype")
+        ax0.set_xlabel("Virus genotype")
+        ax0.set_title(f"Epoch {t}")
 
         return fig, 
 
-    simulation = animation.FuncAnimation(fig, updateHist, frames=len(T), blit=True)
-    simulation.save('Beta_Map.mp4', fps=1, dpi=200)
+    simulation = animation.FuncAnimation(fig, updateHist, frames=fr, blit=True)
+    simulation.save('Beta.mp4', fps=5, dpi=200)
     
     
 if __name__ == "__main__":
