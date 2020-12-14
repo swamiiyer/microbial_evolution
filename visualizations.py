@@ -95,7 +95,7 @@ def main(args):
     pylab.savefig("figure1.pdf", format="pdf", bbox_inches="tight") 
 
     # Figure 2. host genotype distribution vs time
-    print("Generating figure2.pdf...")
+    print("Generating Host_Genotype.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(HOST_GTYPE, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
@@ -109,7 +109,7 @@ def main(args):
     pylab.savefig("Host_Genotype.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 3. host mass distribution vs time
-    print("Generating figure3.pdf...")
+    print("Generating Host_Mass.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(HOST_MASS, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
@@ -123,7 +123,7 @@ def main(args):
     pylab.savefig("Host_Mass.pdf", format="pdf", bbox_inches="tight")
 
     # Figure 4. virus genotype distribution vs time
-    print("Generating figure4.pdf...")
+    print("Generating Virus_Genotype.pdf...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(VIRUS_GTYPE, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
@@ -208,7 +208,7 @@ def main(args):
         if len(list(chain.from_iterable(Beta[t]))) == 0:      # in case of extinction of virus 
             ax0.plot([])
         else:
-            ax0.hist(list(chain.from_iterable(Beta[t])), bins=Bbinlist, density=False, aspect='auto')
+            ax0.hist(list(chain.from_iterable(Beta[t])), bins=Bbinlist, density=False)
             ax0.set_yscale('log')           # using log for y-axis for better visualization
 
         ax0.set_ylabel("Abundency- Beta (log)")
