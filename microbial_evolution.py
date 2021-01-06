@@ -1,4 +1,4 @@
-import lzma, math, pickle, random
+import lzma, pickle, random
 
 
 # Represents a host cell.
@@ -26,7 +26,7 @@ class Virus(object):
 
 # Simulates microbial evolution using the specified parameters and saves the results in a file
 # with the given name.
-def run(params, alpha, fname):
+def run(params, alpha, beta, fname):
     # Initial host and virus populations.
     hosts = [Host(params["hG0"], random.uniform(0.5, 1.0)) for i in range(params["h0"])]
     viruses = [Virus(params["vG0"]) for i in range(params["v0"])]
@@ -104,11 +104,7 @@ def run(params, alpha, fname):
             # Infection.
             uninfectedHosts = list(hosts)
             for host in hosts:
-                # Probability that virus infects host.
-                beta = params["betaMax"] / params["alphaMax"] * alpha(host.g) \
-                       * math.exp(-(virus.g - host.g) ** 2)
-
-                if random.random() < beta:
+                if random.random() < beta(alpha, host.g, virus.g):
                     # Virus infects host and multiplies.
                     uninfectedHosts.remove(host)
                     infections.append((virus, host))

@@ -1,4 +1,4 @@
-import math, microbial_evolution, sys, time
+import math, microbial_evolution, random, sys, time
 
 
 def main(args):
@@ -73,15 +73,23 @@ def main(args):
     params["betaMax"] /= params["volume"]
 
     # Nutrient affinity of host as a linear function of its genotype.
-    def alpha1(hG):
+    def alphaLinear(hG):
         return params["alphaMax"] / params["hG0"] * hG
 
     # Nutrient affinity of host as a Gaussian function of its genotype.
-    def alpha2(hG):
+    def alphaGaussian(hG):
         return params["alphaMax"] * math.exp(-(hG - params["hG0"]) ** 2)
 
+    # Adsorption coefficient as a function of nutrient affinity, and host and virus genotypes.
+    def betaTradeoff(alpha, hG, vG):
+        return params["betaMax"] / params["alphaMax"] * alpha(hG) * math.exp(-(vG - hG) ** 2)
+
+    # Adsorption coefficient as a random value.
+    def betaRandom(alpha, hG, vG):
+        return random.uniform(0, params["betaMax"] / params["alphaMax"] * alpha(hG))
+
     # Run simulation.
-    microbial_evolution.run(params, alpha1, args[1])
+    microbial_evolution.run(params, alphaGaussian, betaTradeoff, args[1])
 
 
 if __name__ == "__main__":
