@@ -22,14 +22,17 @@ def main(args):
     # Washout rate (per h).
     params["washout"] = 0.2
 
-    # Initial host genotype.
-    params["hG0"] = 0.1
+    # Initial host genotype (nutrient affinity).
+    params["gAlpha0"] = 0.1
 
     # Standard deviation for the mutations in host genotype.
     params["hGSigma"] = 0.005
 
-    # Initial virus genotype.
-    params["vG0"] = 0.1
+    # Initial virus genotype (memory).
+    params["gMemory0"] = 0.05
+
+    # Initial virus genotype (adsorption coefficient).
+    params["gBeta0"] = 0.1
 
     # Standard deviation for the mutations in virus genotype.
     params["vGSigma"] = 0.005
@@ -40,14 +43,14 @@ def main(args):
     # Initial virus population size.
     params["v0"] = 810
 
-    # Maximum nutrient affinity of host (L per h per individual).
-    params["alphaMax"] = 1.6e-7
+    # Proportionality constant for the nutrient affinity of host (L per h per individual).
+    params["alpha"] = 1.6e-7
 
     # Maximum growth rate of host (per h).
     params["muMax"] = 0.738
 
-    # Maximum adsorption rate of virus (L per h per individual).
-    params["betaMax"] = 6.2e-11
+    # Proportionality constant for the adsorption rate of virus (L per h per individual).
+    params["beta"] = 6.2e-11
 
     # Number of viruses produced per infection.
     params["burst"] = 10
@@ -67,29 +70,38 @@ def main(args):
     # Virus decay rate (per h).
     params["decay"] = 1.4e-2
 
-    # Express parameters in terms of simulated volume and normalized cell mass.
+    # Parameters in terms of simulated volume and normalized cell mass.
     params["pTotal"] *= params["volume"] / params["pMax"]
-    params["alphaMax"] /= params["volume"]
-    params["betaMax"] /= params["volume"]
+    params["alpha"] /= params["volume"]
+    params["beta"] /= params["volume"]
 
-    # Nutrient affinity of host as a linear function of its genotype.
-    def alphaLinear(hG):
-        return params["alphaMax"] / params["hG0"] * hG
+    # Returns nutrient affinity of the given host as a linear function of its genotype.
+    def alpha(host):
+        return params["alpha"] * host.gAlpha
 
-    # Nutrient affinity of host as a Gaussian function of its genotype.
-    def alphaGaussian(hG):
-        return params["alphaMax"] * math.exp(-(hG - params["hG0"]) ** 2)
+    # Returns the compatibility score of the given host and virus as an exponential function of
+    # their genotypes.
+    def genotypicMatch(host, virus):
+        if virus.gMemory == 0.0:
+            return 1.0 if host.gAlpha == virus.gBeta else 0.0
+        return math.exp(-(abs(host.gAlpha - virus.gBeta) / virus.gMemory))
 
-    # Adsorption coefficient as a function of nutrient affinity, and host and virus genotypes.
-    def betaTradeoff(alpha, hG, vG):
-        return params["betaMax"] / params["alphaMax"] * alpha(hG) * math.exp(-(vG - hG) ** 2)
+    # Returns the compatibility score of the given host and virus as a random value.
+    def randomMatch(host, virus):
+        return random.random()
 
-    # Adsorption coefficient as a random value.
-    def betaRandom(alpha, hG, vG):
-        return random.uniform(0, params["betaMax"] / params["alphaMax"] * alpha(hG))
+    # Returns the adsorption coefficient of the given virus as a function its genotype.
+    def genotypicBeta(virus):
+        if virus.gMemory == 0.0:
+            return params["beta"] * virus.gBeta
+        return params["beta"] * virus.gBeta / virus.gMemory
+
+    # Returns the adsorption coefficient of the given virus as a random value.
+    def randomBeta(virus):
+        return random.uniform(0, params["beta"])
 
     # Run simulation.
-    microbial_evolution.run(params, alphaGaussian, betaTradeoff, args[1])
+    microbial_evolution.run(params, alpha, genotypicMatch, genotypicBeta, args[1])
 
 
 if __name__ == "__main__":

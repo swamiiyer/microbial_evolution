@@ -4,32 +4,25 @@ import lzma, pickle, random
 # Represents a host cell.
 class Host(object):
     # Constructs a host given its genotype and mass.
-    def __init__(self, g, mass):
-        self.g = g
+    def __init__(self, gAlpha, mass):
+        self.gAlpha = gAlpha
         self.mass = mass
-
-    # Returns a string representation of this host.
-    def __str__(self):
-        return "H:%e,%e" % (self.g, self.mass)
 
 
 # Represents a virus cell.
 class Virus(object):
     # Constructs a virus given its genotype.
-    def __init__(self, g):
-        self.g = g
-
-    # Returns a string representation of this virus.
-    def __str__(self):
-        return "V:%e" % (self.g)
+    def __init__(self, gMemory, gBeta):
+        self.gMemory = gMemory
+        self.gBeta = gBeta
 
 
-# Simulates microbial evolution using the specified parameters and saves the results in a file
-# with the given name.
-def run(params, alpha, beta, fname):
+# Simulates microbial evolution using the specified parameters and functions (alpha,
+# compatibility, and beta), and saves the results in a file with the given name.
+def run(params, alpha, compatibility, beta, fname):
     # Initial host and virus populations.
-    hosts = [Host(params["hG0"], random.uniform(0.5, 1.0)) for i in range(params["h0"])]
-    viruses = [Virus(params["vG0"]) for i in range(params["v0"])]
+    hosts = [Host(params["gAlpha0"], random.uniform(0.5, 1.0)) for i in range(params["h0"])]
+    viruses = [Virus(params["gMemory0"], params["gBeta0"]) for i in range(params["v0"])]
 
     # Dissolved Phosphorous in units of individuals.
     biomass = sum([host.mass for host in hosts])
@@ -73,17 +66,17 @@ def run(params, alpha, beta, fname):
             dip += massLoss
 
             # Growth.
-            mu = alpha(host.g) * dip / (1 + alpha(host.g) * dip / params["muMax"])
+            mu = alpha(host) * dip / (1 + alpha(host) * dip / params["muMax"])
             massGain = mu * 1
             host.mass += massGain
             dip = max(0, dip - massGain)
             if host.mass > 1.0:
                 # Host divides into two daughter cells, with possible mutation.
-                hG = host.g
+                gAlpha = host.gAlpha
                 if random.random() < params["hMu"]:
-                    hG = min(max(0.0, random.gauss(hG, params["hGSigma"])), 1.0)
-                nextEpochHosts.append(Host(hG, host.mass / 2))
-                nextEpochHosts.append(Host(hG, host.mass / 2))
+                    gAlpha = min(max(0.0, random.gauss(gAlpha, params["hGSigma"])), 1.0)
+                nextEpochHosts.append(Host(gAlpha, host.mass / 2))
+                nextEpochHosts.append(Host(gAlpha, host.mass / 2))
             else:
                 # Host does not divide.
                 nextEpochHosts.append(host)
@@ -104,17 +97,22 @@ def run(params, alpha, beta, fname):
             # Infection.
             uninfectedHosts = list(hosts)
             for host in hosts:
-                if random.random() < beta(alpha, host.g, virus.g):
-                    # Virus infects host and multiplies.
-                    uninfectedHosts.remove(host)
-                    infections.append((virus, host))
-                    dip += host.mass
-                    vG = virus.g
-                    for i in range(params["burst"]):
-                        if random.random() < params["vMu"]:
-                            vG = min(max(0.0, random.gauss(vG, params["vGSigma"])), 1.0)
-                        nextEpochViruses.append(Virus(vG))
-                    break
+                if random.random() < compatibility(host, virus):
+                    # Virus compatible with host.
+                    if random.random() < beta(virus):
+                        # Virus infects host and multiplies.
+                        uninfectedHosts.remove(host)
+                        infections.append((virus, host))
+                        dip += host.mass
+                        gMemory = virus.gMemory
+                        gBeta = virus.gBeta
+                        for i in range(params["burst"]):
+                            if random.random() < params["vMu"]:
+                                gMemory = min(max(0.0, random.gauss(gMemory, params["vGSigma"])),
+                                              1.0)
+                                gBeta = min(max(0.0, random.gauss(gBeta, params["vGSigma"])), 1.0)
+                            nextEpochViruses.append(Virus(gMemory, gBeta))
+                        break
 
             if len(hosts) == len(uninfectedHosts):
                 # Virus failed to infect any host.
