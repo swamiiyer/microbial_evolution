@@ -10,19 +10,22 @@ def main(args):
     bins = int(args[2])
 
     # Get stats across all the replicates.
-    minHG, maxHG, minVG, maxVG = stats(dirname)
-    minHMass, maxHMass = 0.5, 1.0
+    minAlpha, maxAlpha, minMemory, maxMemory, minBeta, maxBeta = stats(dirname)
+    minMass, maxMass = 0.5, 1.0
 
     # For binning.
-    hbinwidth = (maxHG - minHG) / bins
-    hbinlist = numpy.arange(minHG, maxHG, hbinwidth)
-    hbinlist = hbinlist[:bins] if len(hbinlist) > bins else hbinlist
-    mbinwidth = (maxHMass - minHMass) / bins
-    mbinlist = numpy.arange(minHMass, maxHMass, mbinwidth)
-    mbinlist = mbinlist[:bins] if len(mbinlist) > bins else mbinlist
-    vbinwidth = (maxVG - minVG) / bins
-    vbinlist = numpy.arange(minVG, maxVG, vbinwidth)
-    vbinlist = vbinlist[:bins] if len(vbinlist) > bins else vbinlist
+    alphaBinWidth = (maxAlpha - minAlpha) / bins
+    alphaBinList = numpy.arange(minAlpha, maxAlpha, alphaBinWidth)
+    alphaBinList = alphaBinList[:bins] if len(alphaBinList) > bins else alphaBinList
+    massBinWidth = (maxMass - minMass) / bins
+    massBinList = numpy.arange(minMass, maxMass, massBinWidth)
+    massBinList = massBinList[:bins] if len(massBinList) > bins else massBinList
+    memoryBinWidth = (maxMemory - minMemory) / bins
+    memoryBinList = numpy.arange(minMemory, maxMemory, memoryBinWidth)
+    memoryBinList = memoryBinList[:bins] if len(memoryBinList) > bins else memoryBinList
+    betaBinWidth = (maxBeta - minBeta) / bins
+    betaBinList = numpy.arange(minBeta, maxBeta, betaBinWidth)
+    betaBinList = betaBinList[:bins] if len(betaBinList) > bins else betaBinList
 
     # List of .pkl files within dirname.
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
@@ -31,7 +34,8 @@ def main(args):
     params = None
     dipVal, hostCount, virusCount, infectionCount = None, None, None, None
     infectionMap = None
-    hostGDist, hostMassDist, virusGDist = None, None, None
+    alpha, mass, memory, beta = None, None, None, None
+    alphaDist, massDist, memoryDist, betaDist = None, None, None, None
 
     # For each replicate...
     print("Merging all replicates...")
@@ -57,10 +61,15 @@ def main(args):
             hostCount = numpy.zeros((len(pklfiles), params["epochs"]))
             virusCount = numpy.zeros((len(pklfiles), params["epochs"]))
             infectionCount = numpy.zeros((len(pklfiles), params["epochs"]))
+            alpha = numpy.zeros((len(pklfiles), params["epochs"]))
+            mass = numpy.zeros((len(pklfiles), params["epochs"]))
+            memory = numpy.zeros((len(pklfiles), params["epochs"]))
+            beta = numpy.zeros((len(pklfiles), params["epochs"]))
+            alphaDist = numpy.zeros((bins - 1, params["epochs"]))
+            massDist = numpy.zeros((bins - 1, params["epochs"]))
+            memoryDist = numpy.zeros((bins - 1, params["epochs"]))
+            betaDist = numpy.zeros((bins - 1, params["epochs"]))
             infectionMap = [None] * params["epochs"]
-            hostGDist = numpy.zeros((bins - 1, params["epochs"]))
-            hostMassDist = numpy.zeros((bins - 1, params["epochs"]))
-            virusGDist = numpy.zeros((bins - 1, params["epochs"]))
 
         # For each epoch...
         for j in range(0, params["epochs"]):
@@ -77,25 +86,31 @@ def main(args):
             virusCount[i, j] = len(viruses)
             infectionCount[i, j] = len(infections)
 
-            # Accumulate host genotype distribution for the jth epoch.
-            dist = [host.g for host in hosts]
-            hostGDist[:, j] += numpy.histogram(dist, hbinlist, density=False)[0]
+            # Host genotype for the jth epoch.
+            dist = [host.gAlpha for host in hosts]
+            alpha[i, j] = numpy.average(dist)
+            alphaDist[:, j] += numpy.histogram(dist, alphaBinList, density=False)[0]
 
-            # Accumulate host mass distribution for the jth epoch.
+            # Host mass for the jth epoch.
             dist = [host.mass for host in hosts]
-            hostMassDist[:, j] += numpy.histogram(dist, mbinlist, density=False)[0]
+            mass[i, j] = numpy.average(dist)
+            massDist[:, j] += numpy.histogram(dist, massBinList, density=False)[0]
 
-            # Accumulate virus genotype distribution for the jth epoch.
-            dist = [virus.g for virus in viruses]
-            virusGDist[:, j] += numpy.histogram(dist, vbinlist, density=False)[0]
+            # Virus genotype for the jth epoch.
+            dist = [virus.gMemory for virus in viruses]
+            memory[i, j] = numpy.average(dist)
+            memoryDist[:, j] += numpy.histogram(dist, memoryBinList, density=False)[0]
+            dist = [virus.gBeta for virus in viruses]
+            beta[i, j] = numpy.average(dist)
+            betaDist[:, j] += numpy.histogram(dist, betaBinList, density=False)[0]
 
             # Accumulate infection map for the jth epoch.
             infectingVirusG = []
             infectedHostG = []
             for virus, host in infections:
-                infectingVirusG.append(virus.g)
-                infectedHostG.append(host.g)
-            hist = numpy.histogram2d(infectedHostG, infectingVirusG, (hbinlist, vbinlist),
+                infectingVirusG.append(virus.gBeta)
+                infectedHostG.append(host.gAlpha)
+            hist = numpy.histogram2d(infectedHostG, infectingVirusG, (alphaBinList, betaBinList),
                                      normed=False)[0]
             if (i == 0):
                 infectionMap[j] = hist
@@ -105,39 +120,53 @@ def main(args):
     # Compute averages across all replicates.
     for i in range(len(infectionMap)):
         infectionMap[i] /= len(pklfiles)
-    hostGDist /= len(pklfiles)
-    hostMassDist /= len(pklfiles)
-    virusGDist /= len(pklfiles)
+    alphaDist /= len(pklfiles)
+    massDist /= len(pklfiles)
+    betaDist /= len(pklfiles)
 
     # Write merged results to summary.pkl.
     summary = lzma.open("%s/summary.pkl" % (dirname), "wb")
     pickle.dump(params, summary)
     pickle.dump(bins, summary)
-    pickle.dump(minHG, summary)
-    pickle.dump(maxHG, summary)
-    pickle.dump(minHMass, summary)
-    pickle.dump(maxHMass, summary)
-    pickle.dump(minVG, summary)
-    pickle.dump(maxVG, summary)
+    pickle.dump(minAlpha, summary)
+    pickle.dump(maxAlpha, summary)
+    pickle.dump(minMass, summary)
+    pickle.dump(maxMass, summary)
+    pickle.dump(minMemory, summary)
+    pickle.dump(maxMemory, summary)
+    pickle.dump(minBeta, summary)
+    pickle.dump(maxBeta, summary)
     pickle.dump(numpy.average(dipVal, 0), summary)
+    pickle.dump(numpy.std(dipVal, 0), summary)
     pickle.dump(numpy.average(hostCount, 0), summary)
+    pickle.dump(numpy.std(hostCount, 0), summary)
     pickle.dump(numpy.average(virusCount, 0), summary)
+    pickle.dump(numpy.std(virusCount, 0), summary)
     pickle.dump(numpy.average(infectionCount, 0), summary)
-    pickle.dump(hostGDist, summary)
-    pickle.dump(hostMassDist, summary)
-    pickle.dump(virusGDist, summary)
+    pickle.dump(numpy.std(infectionCount, 0), summary)
+    pickle.dump(numpy.average(alpha, 0), summary)
+    pickle.dump(numpy.std(alpha, 0), summary)
+    pickle.dump(numpy.average(memory, 0), summary)
+    pickle.dump(numpy.std(memory, 0), summary)
+    pickle.dump(numpy.average(beta, 0), summary)
+    pickle.dump(numpy.std(beta, 0), summary)
+    pickle.dump(alphaDist, summary)
+    pickle.dump(massDist, summary)
+    pickle.dump(memoryDist, summary)
+    pickle.dump(betaDist, summary)
     pickle.dump(infectionMap, summary)
     summary.close()
 
 
-# Returns the minimum and maximum values of the host and virus genotype across all the .pkl files
+# Returns the minimum and maximum values of the host and virus genes across all the .pkl files
 # in the specified directory.
 def stats(dirname):
     print("Computing stats across all replicates...")
     pklfiles = glob.glob("%s/*.pkl" % (dirname))
     params = None
-    minHG, maxHG = math.inf, -math.inf
-    minVG, maxVG = math.inf, -math.inf
+    minAlpha, maxAlpha = math.inf, -math.inf
+    minMemory, maxMemory = math.inf, -math.inf
+    minBeta, maxBeta = math.inf, -math.inf
     for i, pklfile in enumerate(sorted(pklfiles)):
         if pklfile.endswith("summary.pkl"):
             continue
@@ -154,13 +183,16 @@ def stats(dirname):
             hosts = hostList[j]
             viruses = virusList[j]
             infections = infectionList[j]
-            genotypes = [host.g for host in hosts]
-            minHG = safeMin([minHG, safeMin(genotypes)])
-            maxHG = safeMax([maxHG, safeMax(genotypes)])
-            genotypes = [virus.g for virus in viruses]
-            minVG = safeMin([minVG, safeMin(genotypes)])
-            maxVG = safeMax([maxVG, safeMax(genotypes)])
-    return minHG, maxHG, minVG, maxVG
+            alpha = [host.gAlpha for host in hosts]
+            minAlpha = safeMin([minAlpha, safeMin(alpha)])
+            maxAlpha = safeMax([maxAlpha, safeMax(alpha)])
+            memory = [virus.gBeta for virus in viruses]
+            minMemory = safeMin([minBeta, safeMin(memory)])
+            maxMemory = safeMax([maxBeta, safeMax(memory)])
+            beta = [virus.gBeta for virus in viruses]
+            minBeta = safeMin([minBeta, safeMin(beta)])
+            maxBeta = safeMax([maxBeta, safeMax(beta)])
+    return minAlpha, maxAlpha, minMemory, maxMemory, minBeta, maxBeta
 
 
 # Returns the smallest value in a or 0.
