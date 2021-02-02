@@ -20,12 +20,12 @@ def main(args):
     bins = pickle.load(fh)
     # min & max 
     minAlpha = pickle.load(fh)      
-    maxAlpha = pickle.load(fh)      
-    minMass = pickle.load(fh)       
+    maxAlpha = pickle.load(fh)     
+    minMass = pickle.load(fh)      
     maxMass = pickle.load(fh)       
-    minMemory = pickle.load(fh)     # new merge
-    maxMemory = pickle.load(fh)     # new merge
-    minBeta = pickle.load(fh)       
+    minMemory = pickle.load(fh)     
+    maxMemory = pickle.load(fh)     
+    minBeta = pickle.load(fh)      
     maxBeta = pickle.load(fh)      
     # DIP
     DIP = pickle.load(fh)           # average of dipVal
@@ -48,12 +48,13 @@ def main(args):
     beta_std = pickle.load(fh)      # new merge
 
     # Distributions
-    alphaDist = pickle.load(fh)     # Host genotype
+    alphaDist = pickle.load(fh)     # host genotype
     HOST_MASS = pickle.load(fh)     # massDist
-    memoryDist = pickle.load(fh)    # new merge (Virus genotype)
-    betaDist = pickle.load(fh)      # Virus genotype
+    memoryDist = pickle.load(fh)    # new merge
+    betaDist = pickle.load(fh)      # virus genotype (beta)
     INFECTION_MAP = pickle.load(fh) 
     fh.close()
+
 
     # float numbers of min and max values
     min_Alpha = float('%.2f' %(minAlpha))       
@@ -62,9 +63,9 @@ def main(args):
     max_Mass = float('%.2f' %(maxMass))    
     min_Memory = float('%.2f' %(minMemory))  # new merge
     max_Memory = float('%.2f' %(maxMemory))  # new merge
-    min_Beta = float('%.2f' %(minBeta)) 
-    max_Beta = float('%.2f' %(maxBeta)) 
-
+    min_Beta = float('%.2f' %(minBeta))  
+    max_Beta = float('%.2f' %(maxBeta))  
+    
     # binning
     alphaBinWidth = (max_Alpha - min_Alpha) / bins
     alphaBinList = numpy.arange(min_Alpha, max_Alpha, alphaBinWidth)
@@ -79,17 +80,19 @@ def main(args):
     betaBinList = numpy.arange(min_Beta, max_Beta, betaBinWidth)
     betaBinList = betaBinList[:bins] if len(betaBinList) > bins else betaBinList
 
+
+
     # find the max number of infections
     max_infections=0
     for v in INFECTION_MAP:
         max_infections = max(max_infections, v.max())        
         
-    # frame speed for movies (figures 5 and 7): only show every 10th epoch
+    # frame speed for movies (figures 7): only show every 10th epoch
     fr_spd = 10
     fr = int(len(T) / fr_spd)    
 
     # Figure 1: 1.1. DIP vs time, 1.2. host abundance vs time, 1.3. virus abundance vs time, 1.4. infection count vs time
-    print("Generating figure1.pdf...")
+    print("Generating figure1.pdf/jpeg...")
     figure = pylab.figure(figsize=(8, 6), dpi=500)
     size = 10
     pylab.rcParams["axes.titlesize"] = size
@@ -119,9 +122,11 @@ def main(args):
     axes.errorbar(T, I, yerr = I_std, color='green', alpha=0.6)
 
     pylab.savefig("figure1.pdf", format="pdf", bbox_inches="tight") 
+    pylab.savefig("figure1.jpeg", format="jpeg", bbox_inches="tight")
 
-    # Figure 2: mean alpha, mean memory, mean beta
-    print("Generating genes.pdf...")
+
+    # Figure 2: mean alpha, mean memory, mean beta w/ w.o std
+    print("Generating genes.pdf/jpeg...")
     figure = pylab.figure(figsize=(10, 6), dpi=500)
     size = 8
     pylab.rcParams["axes.titlesize"] = size
@@ -145,6 +150,7 @@ def main(args):
     axes.set_ylabel("Beta")
     axes.plot(T, beta, "g-", alpha=0.6)
 
+    # with error bars
     axes = figure.add_subplot(3, 2, 2)  
     axes.set_ylabel("Alpha")
     axes.errorbar(T, alpha, yerr = alpha_std,  color='blue', alpha=0.6)   
@@ -161,38 +167,40 @@ def main(args):
     axes.errorbar(T, beta, yerr = beta_std, color='green', alpha=0.6)
 
     pylab.savefig("genes.pdf", format="pdf", bbox_inches="tight") 
-
+    pylab.savefig("genes.jpeg", format="jpeg", bbox_inches="tight")
 
     # Figure 3. host genotype (alpha) distribution vs time
-    print("Generating Host_Genotype Alpha.pdf...")
+    print("Generating Host_Genotype Alpha.pdf/jpeg...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(alphaDist, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("alpha")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks2 = alphaBinList[0:-1:10]       
+    show_tricks2 = alphaBinList[0:-1:10]      
     pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks2])
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("alphaDist.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("alphaDist.jpeg", format="jpeg", bbox_inches="tight")
 
     # Figure 4. host mass distribution vs time
-    print("Generating Host_Mass.pdf...")
+    print("Generating Host_Mass.pdf/jpeg...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(HOST_MASS, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
     img.axes.set_xlabel("Time (h)")
     img.axes.set_ylabel("Host mass")
     ticks = numpy.arange(0, bins, 10)
-    show_tricks3 = massBinList[0:-1:10]         
-    pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks3])            
+    show_tricks3 = massBinList[0:-1:10]       
+    pylab.yticks(ticks, [float('%.2f' %(show_item)) for show_item in show_tricks3])           
     cb = pylab.colorbar(img)
     cb.set_label("# of hosts")
     pylab.savefig("Host_Mass.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Host_Mass.jpeg", format="jpeg", bbox_inches="tight")
 
     # Figure 5. virus genotype (memory) distribution vs time
-    print("Generating Virus_Genotype memory.pdf...")
+    print("Generating Virus_Genotype memory.pdf/jpeg...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(memoryDist, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
@@ -204,10 +212,10 @@ def main(args):
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
     pylab.savefig("memoryDist.pdf", format="pdf", bbox_inches="tight")
-
+    pylab.savefig("memoryDist.jpegf", format="jpeg", bbox_inches="tight")
 
     # Figure 6. virus genotype (beta) distribution vs time
-    print("Generating Virus_Genotype beta.pdf...")
+    print("Generating Virus_Genotype beta.pdf/jpeg...")
     pylab.figure(figsize=(8, 6), dpi=500)
     img = pylab.imshow(betaDist, norm=colors.SymLogNorm(linthresh = 1) , cmap='jet', origin='lower')
     pylab.axis("tight")
@@ -219,6 +227,7 @@ def main(args):
     cb = pylab.colorbar(img)
     cb.set_label("# of viruses")
     pylab.savefig("betaDist.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("betaDist.jpeg", format="jpeg", bbox_inches="tight")
 
     # Figure 7. time evolution of infection map as a movie
     print("Generating infections.mp4...")
