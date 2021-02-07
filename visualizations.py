@@ -103,23 +103,23 @@ def main(args):
 
     axes = figure.add_subplot(4, 1, 1)  # Figure 1.1. DIP vs time
     axes.set_ylabel("DIP")
-    axes.errorbar(T, DIP, yerr = DIP_std,  color='black', alpha=0.6)   # ls = '-' is a default
+    axes.errorbar(T, DIP, yerr = DIP_std,  color='black', ecolor='lightgray', alpha=0.6)   # ls = '-' is a default
     axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 2)  # Figure 1.2. host abundance vs time
     axes.set_ylabel("# of hosts")
-    axes.errorbar(T, H, yerr = H_std, color='blue', alpha=0.6)
+    axes.errorbar(T, H, yerr = H_std, color='blue', ecolor ='lightblue', alpha=0.6)
     axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 3)  # Figure 1.3. virus abundance vs time
     axes.set_ylabel("# of viruses")
-    axes.errorbar(T, V, yerr = V_std, color='red', alpha=0.6)
+    axes.errorbar(T, V, yerr = V_std, color='red', ecolor='mistyrose', alpha=0.6)
     axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(4, 1, 4)  # Figure 1.4. infection count vs time
     axes.set_xlabel("Time (h)")
     axes.set_ylabel("# of infections")
-    axes.errorbar(T, I, yerr = I_std, color='green', alpha=0.6)
+    axes.errorbar(T, I, yerr = I_std, color='green', ecolor='lightgreen',  alpha=0.6)
 
     pylab.savefig("figure1.pdf", format="pdf", bbox_inches="tight") 
     pylab.savefig("figure1.jpeg", format="jpeg", bbox_inches="tight")
@@ -153,18 +153,18 @@ def main(args):
     # with error bars
     axes = figure.add_subplot(3, 2, 2)  
     axes.set_ylabel("Alpha")
-    axes.errorbar(T, alpha, yerr = alpha_std,  color='blue', alpha=0.6)   
+    axes.errorbar(T, alpha, yerr = alpha_std,  color='blue', ecolor='lightblue', alpha=0.6)   
     axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(3, 2, 4)  
     axes.set_ylabel("Memory")
-    axes.errorbar(T, memory, yerr = memory_std, color='red', alpha=0.6)
+    axes.errorbar(T, memory, yerr = memory_std, color='red', ecolor='mistyrose', alpha=0.6)
     axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
 
     axes = figure.add_subplot(3, 2, 6)  
     axes.set_xlabel("Time (h)")
     axes.set_ylabel("Beta")
-    axes.errorbar(T, beta, yerr = beta_std, color='green', alpha=0.6)
+    axes.errorbar(T, beta, yerr = beta_std, color='green', ecolor='lightgreen', alpha=0.6)
 
     pylab.savefig("genes.pdf", format="pdf", bbox_inches="tight") 
     pylab.savefig("genes.jpeg", format="jpeg", bbox_inches="tight")
