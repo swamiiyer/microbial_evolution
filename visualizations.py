@@ -7,6 +7,7 @@ from matplotlib.pylab import *
 import matplotlib.colors as colors
 from matplotlib.colors import SymLogNorm
 from itertools import chain 
+from scipy.stats import entropy
 
 def main(args):
     fname = args[1]
@@ -255,9 +256,43 @@ def main(args):
         ax0.set_title(f"Epoch {t}")
         
         return fig, 
-
+    
     simulation = animation.FuncAnimation(fig, updateHist, frames=fr, blit=True)
-    simulation.save('infections.mp4', fps=5, dpi=200)
+    simulation.save('infections.mp4', fps=5, dpi=200)  
+    
+    # Figure 7. Entropy of Host (alpha) & Virus (beta, Memory) Genotypes
+    # calculate Entropy using python package
+    EntrP_alpha = entropy(alphaDist, base=2)
+    EntrP_beta = entropy(betaDist, base=2)
+    EntrPy_memory = entropy(memoryDist, base=2)
+    
+    # plotting parts
+    print("Generating Entropy.pdf...")
+    figure = pylab.figure(figsize=(8, 6), dpi=500)
+    size = 10
+    pylab.rcParams["axes.titlesize"] = size
+    pylab.rcParams["axes.labelsize"] = size
+    pylab.rcParams["xtick.labelsize"] = size
+    pylab.rcParams["ytick.labelsize"] = size
+    pylab.rcParams["legend.fontsize"] = size
+
+    axes = figure.add_subplot(3, 1, 1)  # Figure 1.1. DIP vs time
+    axes.set_ylabel("Entropy (alpha)")
+    axes.plot(T, EntrP_alpha, "b-", alpha=0.6)
+    axes.set_xticks([])
+
+    axes = figure.add_subplot(3, 1, 2)  # Figure 1.3. virus abundance vs time
+    axes.set_ylabel("Entropy (beta)")
+    axes.plot(T, EntrP_beta, "r-", alpha=0.6)
+    axes.set_xticks([])
+
+    axes = figure.add_subplot(3, 1, 3)  # Figure 1.3. virus abundance vs time
+    axes.set_ylabel("Entropy (memory)")
+    axes.plot(T, EntrPy_memory, "r-", alpha=0.6)
+    axes.set_xlabel("Time (h)")
+
+    pylab.savefig("Entropy.pdf", format="pdf", bbox_inches="tight")
+    pylab.savefig("Entropy.jpeg", format="jpeg", bbox_inches="tight")
     
 if __name__ == "__main__":
     main(sys.argv)
