@@ -88,20 +88,20 @@ def main(args):
 
             # Host genotype for the jth epoch.
             dist = [host.gAlpha for host in hosts]
-            alpha[i, j] = numpy.average(dist)
+            alpha[i, j] = numpy.average(dist) if len(dist) > 0 else 0
             alphaDist[:, j] += numpy.histogram(dist, alphaBinList, density=False)[0]
 
             # Host mass for the jth epoch.
             dist = [host.mass for host in hosts]
-            mass[i, j] = numpy.average(dist)
+            mass[i, j] = numpy.average(dist) if len(dist) > 0 else 0
             massDist[:, j] += numpy.histogram(dist, massBinList, density=False)[0]
 
             # Virus genotype for the jth epoch.
             dist = [virus.gMemory for virus in viruses]
-            memory[i, j] = numpy.average(dist)
+            memory[i, j] = numpy.average(dist) if len(dist) > 0 else 0
             memoryDist[:, j] += numpy.histogram(dist, memoryBinList, density=False)[0]
             dist = [virus.gBeta for virus in viruses]
-            beta[i, j] = numpy.average(dist)
+            beta[i, j] = numpy.average(dist) if len(dist) > 0 else 0
             betaDist[:, j] += numpy.histogram(dist, betaBinList, density=False)[0]
 
             # Accumulate infection map for the jth epoch.
@@ -136,20 +136,20 @@ def main(args):
     pickle.dump(maxMemory, summary)
     pickle.dump(minBeta, summary)
     pickle.dump(maxBeta, summary)
-    pickle.dump(numpy.average(dipVal, 0), summary)
-    pickle.dump(numpy.std(dipVal, 0), summary)
-    pickle.dump(numpy.average(hostCount, 0), summary)
-    pickle.dump(numpy.std(hostCount, 0), summary)
-    pickle.dump(numpy.average(virusCount, 0), summary)
-    pickle.dump(numpy.std(virusCount, 0), summary)
-    pickle.dump(numpy.average(infectionCount, 0), summary)
-    pickle.dump(numpy.std(infectionCount, 0), summary)
-    pickle.dump(numpy.average(alpha, 0), summary)
-    pickle.dump(numpy.std(alpha, 0), summary)
-    pickle.dump(numpy.average(memory, 0), summary)
-    pickle.dump(numpy.std(memory, 0), summary)
-    pickle.dump(numpy.average(beta, 0), summary)
-    pickle.dump(numpy.std(beta, 0), summary)
+    pickle.dump(numpy.average(dipVal, 0) if len(dipVal) > 0 else 0, summary)
+    pickle.dump(numpy.std(dipVal if len(dipVal) > 0 else 0, 0), summary)
+    pickle.dump(numpy.average(hostCount if len(hostCount) > 0 else 0, 0), summary)
+    pickle.dump(numpy.std(hostCount, 0) if len(hostCount) > 0 else 0, summary)
+    pickle.dump(numpy.average(virusCount, 0) if len(virusCount) > 0 else 0, summary)
+    pickle.dump(numpy.std(virusCount if len(virusCount) > 0 else 0, 0), summary)
+    pickle.dump(numpy.average(infectionCount if len(infectionCount) > 0 else 0, 0), summary)
+    pickle.dump(numpy.std(infectionCount if len(infectionCount) > 0 else 0, 0), summary)
+    pickle.dump(numpy.average(alpha if len(alpha) > 0 else 0, 0), summary)
+    pickle.dump(numpy.std(alpha if len(alpha) > 0 else 0, 0), summary)
+    pickle.dump(numpy.average(memory if len(memory) > 0 else 0, 0), summary)
+    pickle.dump(numpy.std(memory if len(memory) > 0 else 0, 0), summary)
+    pickle.dump(numpy.average(beta if len(beta) > 0 else 0, 0), summary)
+    pickle.dump(numpy.std(beta if len(beta) > 0 else 0, 0), summary)
     pickle.dump(alphaDist, summary)
     pickle.dump(massDist, summary)
     pickle.dump(memoryDist, summary)
