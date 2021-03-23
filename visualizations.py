@@ -125,6 +125,29 @@ def main(args):
     pylab.savefig("figure1.pdf", format="pdf", bbox_inches="tight") 
     pylab.savefig("figure1.jpeg", format="jpeg", bbox_inches="tight")
 
+    
+    # Figure 1_HV: 1.host abundance vs time, 1.2. virus abundance vs time
+    print("Generating figure1_HV.pdf/jpeg...")
+    figure = pylab.figure(figsize=(8, 6), dpi=500)
+    size = 10
+    pylab.rcParams["axes.titlesize"] = size
+    pylab.rcParams["axes.labelsize"] = size
+    pylab.rcParams["xtick.labelsize"] = size
+    pylab.rcParams["ytick.labelsize"] = size
+    pylab.rcParams["legend.fontsize"] = size
+
+    axes = figure.add_subplot(2, 1, 1)  # Figure 1.2. host abundance vs time
+    axes.set_ylabel("# of hosts")
+    axes.errorbar(T, H, yerr = H_std, color='blue', ecolor ='lightblue', alpha=0.6)
+    axes.set_xticks([])      # avoiding the mixing of xticks with another subplot
+
+    axes = figure.add_subplot(2, 1, 2)  # Figure 1.3. virus abundance vs time
+    axes.set_ylabel("# of viruses")
+    axes.set_xlabel("Time (h)")
+    axes.errorbar(T, V, yerr = V_std, color='red', ecolor='mistyrose', alpha=0.6)    
+
+    pylab.savefig("figure1_HV.pdf", format="pdf", bbox_inches="tight") 
+    pylab.savefig("figure1_HV.jpeg", format="jpeg", bbox_inches="tight")
 
     # Figure 2: mean alpha, mean memory, mean beta w/ w.o std
     print("Generating genes.pdf/jpeg...")
