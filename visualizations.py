@@ -289,7 +289,7 @@ def main(args):
     EntrP_beta = entropy(betaDist, base=2)
     EntrPy_memory = entropy(memoryDist, base=2)
     
-    # plotting parts
+    # Figure 8. Entropy plot
     print("Generating Entropy.pdf...")
     figure = pylab.figure(figsize=(8, 6), dpi=500)
     size = 10
@@ -302,7 +302,7 @@ def main(args):
     axes = figure.add_subplot(3, 1, 1)  # Figure 1.1. DIP vs time
     axes.set_ylabel("Entropy (alpha)")
     axes.plot(T, EntrP_alpha, "b-", alpha=0.6)
-    axes.set_xticks([])
+    #axes.set_xticks([])        # different xaxis values for host and virus due to calculating average/different extinction time of host and virus 
 
     axes = figure.add_subplot(3, 1, 2)  # Figure 1.3. virus abundance vs time
     axes.set_ylabel("Entropy (beta)")
